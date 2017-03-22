@@ -1,0 +1,24 @@
+ID    time                    Comment
+1     2011/01/01T22:54:13     Actual eruption probably located at (2011/01/23 00:48) http://sidc.oma.be/cactus/catalog/LASCO/2_5_0/2011/01/CME0039/CME.html
+2     2011/01/28T00:00:09     Believe
+3     2011/01/28T03:38:33     Probably located at (2011/01/28 06:00). Cactus time is before AIA time http://sidc.oma.be/cactus/catalog/LASCO/2_5_0/2011/01/CME0055/CME.html
+4     2011/01/29T07:19:39     Believe
+5     2011/01/30T08:18:10     Probably located at (2011/01/29 09:36) http://sidc.oma.be/cactus/catalog/LASCO/2_5_0/2011/01/CME0059/CME.html 
+6     2011/02/02T00:00:11     Maybe right no other CaCTUS event detected however could be missed AIA or LASCO eruptions
+7     2011/02/11T06:03:46     Believe
+8     2011/02/15T01:35:34     Believe
+9     2011/02/27T07:51:40     Believe
+10    2011/03/03T00:00:04     CaCTUS CME is real but I doubt it took 20 hours to get  Real AIA eruption ~19:57 in AIA 304
+11    2011/03/04T02:42:10     Believe
+12    2011/03/07T19:00:01     Believe
+13    2011/03/19T11:24:11     Believe
+14    2011/03/29T18:40:11     Believe
+15    2011/03/31T21:00:29     Believe
+16    2011/04/08T21:00:30     Probably (2011/04/08 23:12) http://sidc.oma.be/cactus/catalog/LASCO/2_5_0/2011/04/CME0018/CME.html
+17    2011/04/24T07:34:00     Believe
+18    2011/04/27T00:41:54     Believe
+19    2011/05/04T15:09:54     Believe
+20    2011/05/06T01:35:00     Believe
+21    2011/05/11T01:43:54     Believe
+22    2011/05/12T11:14:54     Believe
+23    2011/05/18T00:00:02     Actual AIA eruption probably 05:36 visible in LASCO at 07:36 
