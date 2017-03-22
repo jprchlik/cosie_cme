@@ -138,7 +138,7 @@ theta1 = np.radians(97) #location of north in the image
 
 
 for ff,i in enumerate(cmes):
-    print 'NEW CME [km/s]'
+    print 'NEW CME [km/s] ID = {0:2d}'.format(ff+1)
 
 #initalize variables before while loop
     base = i['start_dt']
@@ -153,7 +153,7 @@ for ff,i in enumerate(cmes):
 #calc smallest velocity
     solarrad = sunpy.sun.solar_semidiameter_angular_size(i['start_dt']).value
     dx,dy,minv = calc_min_v(i,solarrad,theta1)
-    print dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad
+    px,py = dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad #velocity by just comparing the CACTus and Filament catalongs
     
     vx,vy = return_obs_vel_comp(i,solarrad,theta1)
 
@@ -161,7 +161,7 @@ for ff,i in enumerate(cmes):
 #    print vx,vy,np.sqrt(vx**2+vy**2)
 
     dx,dy = (np.array([vx,vy])/kmsolar)*(60.*solarrad) #(km/s)*(Rsun/km)*(s/min)*(arcsec/Rsun) = arcsec/min
-    print 'AIA to CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad)
+    print 'AIA to CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(px,py)
     print 'CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(vx,vy)
 
 #initalize x and y arrays
