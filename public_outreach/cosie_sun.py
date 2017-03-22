@@ -75,7 +75,7 @@ def cal_ind_v(paa,theta1,detrad,solarrad):
     return LX,LY,paa
 
 #calculates datetime of column in array
-def calc_dt(tab,strtime,fmttime):
+def calc_dt(tab,strtime,fmt):
 
     for i in strtime: tab[i+'_dt'] = [datetime.strptime(date,fmt) for date in tab[i]]
 
@@ -83,19 +83,23 @@ def calc_dt(tab,strtime,fmttime):
 
 #client = hek.HEKClient()
 
+#2011 events observed with CaCTUS
 cmes = ascii.read('../filament/cosie_cat.dat')
+#start and end of unobscured observing times for hypothetical COSIE in 2011
 obst = ascii.read('../filament/python_f_cosie_obs.csv',delimiter=',')
 
 fmt ='%Y/%m/%dT%H:%M:%S'
 
+#turns string times into arrays and adds to astropy table
 cmes = calc_dt(cmes,['start','end'],fmt)
 fmt = fmt.replace('T',' ')
 obst = calc_dt(obst,['start'],fmt)
 
+#no start and endtime in obst table so calc endtime manually
 obst['end_dt'] = [obst['start_dt'][j]+timedelta(minutes=i) for j,i in enumerate(obst['end'])]
 
 
-timeres = 0.5 #half minute is fast COSIE cadence
+timeres = 0.5 #half minute is fast COSIE cadence (30s)
 
 eyetest= False
 
@@ -106,13 +110,15 @@ fig1.subplots_adjust(left=0, bottom=0, right=1, top=1)
 fig2,ax2 = plt.subplots(figsize=(24,24))
 #prevent annoying white box
 fig2.subplots_adjust(left=0, bottom=0, right=1, top=1)
-image = mpimg.imread("../photos/cosie_fov_color_ring.png")
+##FANCY OFF LIMB DEEP AIA EXPOSURES##
+#image = mpimg.imread("../photos/cosie_fov_color_ring.png")
 #ax1.imshow(image,extent=[-3,3,-3,3])
 
 #Add Radial Circles
 r1 = plt.Circle((0,0),radius=1.0,color='gray',fill=True,linewidth=5,zorder=0)
 r2 = plt.Circle((0,0),radius=2.0,color='black',fill=False,linewidth=5)
 r3 = plt.Circle((0,0),radius=3.0,color='black',fill=False,linewidth=5)
+#Add gray sun
 s1 = plt.Rectangle((-3.3,-3.3),6.6,6.6,color='black',fill=False,linewidth=15)
 ax1.add_patch(r1)
 ax1.add_patch(r2)
@@ -135,13 +141,15 @@ ax1.text(-3.22,-3.22,'COSIE FOV',color='black',fontsize=34,ha='left',weight='bol
 #ax2.text(-2.92,-2.92,'COSIE FOV',color='black',fontsize=34,ha='left')
 #
 
+##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
 theta1 = np.radians(97) #location of north in the image
 #theta1 = np.radians(90) #location of north no image
+##PUT A DOT ON NORTH FOR TESTING PURPOSES##
 #x1,y1 = np.cos(0.+theta1),np.sin(0+theta1)
 #ax1.scatter(x1,y1,color='red',s=75)
 
-#plt.show()
 
+#CUT SHORT for testing purposes
 #cmes = cmes[:3]
 
 
