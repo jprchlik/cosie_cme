@@ -11,7 +11,7 @@ import matplotlib.image as mpimg
 from math import atan2,cos,sin
 
 kmsolar = 6.96*10.**5. #solar radii to km
-#Calculate the mininum allowd dv for LASCO to CME convertion using available position angles 
+#Calculate the allowed dv for LASCO to CME using available position angles 
 def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
 #LASCO X and Y values
 #current solar radius at time of obs in solar arcseconds
@@ -26,13 +26,10 @@ def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
 
     v = np.sqrt(dx**2+dy**2)
 
-#return just the min velocity value
-#    minv, = np.where(v == v.min())
-#    rdx,rdy,rv,rpa = dx[minv],dy[minv],v[minv],paa[minv]
-
     return dx,dy,v
     
 
+#Calculate Vx an Vy components of CME using position of detected CME in CaCTUS
 def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=1.5):
     global kmsolar
 
@@ -50,29 +47,17 @@ def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=1.5):
 
 
     v = np.sqrt(vx**2+vy**2)
-#return just the min velocity value
-#    minv, = np.where(v == v.min())
-#    rdx,rdy,rv,rpa = dx[minv],dy[minv],v[minv],paa[minv]
-
-
-#    vx, vy = float(rdx),float(rdy)
-
 
     return vx,vy
 
 
-
-
-
-    
-
+##CALCULATE X,Y VALUES IN ARCSEC
 def cal_ind_v(paa,theta1,detrad,solarrad):
 
-    
     LX,LY = solarrad*detrad*np.cos(np.radians(paa)+theta1),solarrad*detrad*np.sin(np.radians(paa)+theta1) #arcseconds
-    
 
     return LX,LY,paa
+
 
 #calculates datetime of column in array
 def calc_dt(tab,strtime,fmt):
@@ -83,7 +68,7 @@ def calc_dt(tab,strtime,fmt):
 
 #client = hek.HEKClient()
 
-#2011 events observed with CaCTUS
+#2011 events observed with CaCTUS and Filament McCatalog
 cmes = ascii.read('../filament/cosie_cat.dat')
 #start and end of unobscured observing times for hypothetical COSIE in 2011
 obst = ascii.read('../filament/python_f_cosie_obs.csv',delimiter=',')
@@ -177,8 +162,8 @@ for ff,i in enumerate(cmes):
 #    print vx,vy,np.sqrt(vx**2+vy**2)
 
     dx,dy = (np.array([vx,vy])/kmsolar)*(60.*solarrad) #(km/s)*(Rsun/km)*(s/min)*(arcsec/Rsun) = arcsec/min
-    print dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad
-    print vx,vy
+    print 'AIA to CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad)
+    print 'CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(vx,vy)
 
 #initalize x and y arrays
     xs = [i['X']]
@@ -242,14 +227,17 @@ for ff,i in enumerate(cmes):
         plt.show() 
 
 
+##PUT POINTS OFF THE PLOT FOR LEGEND##
 ax1.scatter(-1111,1111,color='blue',label='Observable',s=175)
 ax1.scatter(-1111,1111,marker='x',color='red',label='Eclipsed',s=175)
 
+##FORMAT LEGEND SO IT LOOKS NICE##
 leg = ax1.legend(bbox_to_anchor=(0.00, 0.13),
            scatterpoints=1,loc=2,
            frameon=False,handletextpad=-.1,fontsize=36)
 
 
+#SETS LEGEND COLOR TO WHITE FOR WHEN YOU USE THE AIA IMAGE
 #for text in leg.get_texts(): text.set_color('w')
 
 ax1.set_axis_off()
