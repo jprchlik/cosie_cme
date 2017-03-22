@@ -17,7 +17,6 @@ def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
 #current solar radius at time of obs in solar arcseconds
     rad = detrad*solarrad #arcsec lasco C2 inner edge
 
-#    paa = np.arange(pa-dpa/2.,pa+dpa/2.,res)
     LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
 #total obs time
     obstime = (i['end_dt']-i['start_dt']).seconds/60. #minutes 
