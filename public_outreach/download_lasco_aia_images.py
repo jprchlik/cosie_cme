@@ -53,5 +53,5 @@ class dl_event:
                                x0=self.x0, y0=self.y0, width=self.h0, height=self.w0,watermark=self.water)
 
     def make_movie_files(self):
-        movie = create_movie(pdir=self.bdir+self.edir,ext='png',w0=self.w0,h0=self.h0,frate=12,outmov='movies/'+self.start.strftime('%Y_%m_%d_')+self.aia+'.mp4')
+        movie = create_movie(pdir=self.bdir+self.edir,ext='png',w0=self.w0,h0=self.h0,frate=12,outmov='movies/'+self.start.strftime('%Y_%m_%d_%H_%M')+self.aia+'.mp4')
         movie.create_movie()
