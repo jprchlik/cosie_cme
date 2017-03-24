@@ -17,8 +17,12 @@ cmes = calc_dt(cmes,['start','end'],fmt)
 fmt = fmt.replace('T',' ')
 
 h0,w0 = 3000,3000
+xoff, yoff = h0/3.,w0/3.
 
-event = dl_event(cmes['start_dt'][0],cmes['end_dt'][0],x0=cmes['X'][0]+w0/3.,y0=cmes['Y'][0],h0=h0,w0=w0,res=2.4)
+if cmes['X'][0] < 0.: xoff = -xoff
+if cmes['Y'][0] < 0.: yoff = -yoff
+
+event = dl_event(cmes['start_dt'][0],cmes['end_dt'][0],x0=cmes['X'][0]+xoff,y0=cmes['Y'][0]+yoff,h0=h0,w0=w0,res=1.2)
 event.loop_download()
 
 
