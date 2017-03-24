@@ -178,16 +178,16 @@ for ff,i in enumerate(cmes):
     k=0 
 #    while neval <= i['end_dt']:
 ####LOOK and see if Observed CME is in eclipse time for ISS
-    while ((np.abs(xs[-1]) < 3.3*solarrad) & (np.abs(ys[-1]) < 3.3*solarrad)):
-        neval = neval+timedelta(minutes=timeres) 
-        timea.append(neval)
-        obstest, = np.where((obst['start_dt'] <= neval ) & (obst['end_dt'] >= neval))
-        obsed.append(obstest.size)
+    while ((np.abs(xs[-1]) < 3.3*solarrad) & (np.abs(ys[-1]) < 3.3*solarrad)): #do computation as long as CME is in COSIE FOV
+        neval = neval+timedelta(minutes=timeres)  #increment in COSIE time resolution
+        timea.append(neval) #Add time to a time list for book keeping
+        obstest, = np.where((obst['start_dt'] <= neval ) & (obst['end_dt'] >= neval)) #if if time is during eclipse
+        obsed.append(obstest.size) # if time is during elcipse return 0 if not return 1
  
-        xs.append(i['X']+dx*k*timeres)
-        ys.append(i['Y']+dy*k*timeres)
+        xs.append(i['X']+dx*k*timeres)  #add to x,y list of CME trajectory
+        ys.append(i['Y']+dy*k*timeres)  #add to x,y list of CME trajectory
 
-        k+=1
+        k+=1 #increment by 1
 
 #convert x and y values into arrays
     xs = np.array(xs)/solarrad
