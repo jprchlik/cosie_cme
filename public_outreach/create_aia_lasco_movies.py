@@ -16,7 +16,9 @@ fmt ='%Y/%m/%dT%H:%M:%S'
 cmes = calc_dt(cmes,['start','end'],fmt)
 fmt = fmt.replace('T',' ')
 
-event = dl_event(cmes['start_dt'][0],cmes['end_dt'][0],x0=cmes['X'][0],y0=cmes['Y'][0])
+h0,w0 = 3000,3000
+
+event = dl_event(cmes['start_dt'][0],cmes['end_dt'][0],x0=cmes['X'][0]+w0/3.,y0=cmes['Y'][0],h0=h0,w0=w0,res=2.4)
 event.loop_download()
 
 

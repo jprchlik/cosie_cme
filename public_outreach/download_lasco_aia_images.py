@@ -9,7 +9,7 @@ import os
 
 class dl_event:
 
-    def __init__(self,start,end,cadence=60.,outfmt='%Y/%m/%d/',aia_wav='304',bdir='cme_images/',x0=0,y0=0,h0=1024,w0=1024,res=1.2,pad=20):
+    def __init__(self,start,end,cadence=60.,outfmt='%Y/%m/%d/',aia_wav='304',bdir='cme_images/',x0=0,y0=0,h0=1024,w0=1024,res=1.2,pad=20,water=True):
         self.start = start
         self.end   = end
         self.cad   = timedelta(seconds=cadence)
@@ -17,6 +17,7 @@ class dl_event:
         self.aia   = '{0:3d}'.format(int(float(aia_wav)))
         self.res   = res
         self.pad   = pad #number of extra observations to pad
+        self.water = water
 
 
 #set up directory structure
@@ -48,4 +49,4 @@ class dl_event:
         file = hv.download_png(self.start+i*self.cad,self.res, 
                                "[SDO,AIA,AIA,{0},1,100],[SOHO,LASCO,C2,white-light,1,100]".format(self.aia),
                                directory=self.bdir+self.edir,
-                               x0=self.x0, y0=self.y0, width=self.h0, height=self.w0)
+                               x0=self.x0, y0=self.y0, width=self.h0, height=self.w0,watermark=self.water)
