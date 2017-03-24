@@ -19,7 +19,7 @@ def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
 
     LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
 #total obs time
-    obstime = (i['end_dt']-i['start_dt']).seconds/60. #minutes 
+    obstime = float((i['end_dt']-i['start_dt']).seconds/60.) #minutes 
     dx = (LX-i['X'])/obstime #arcsec per min
     dy = (LY-i['Y'])/obstime #arcsec per min
 
@@ -141,7 +141,7 @@ theta1 = np.radians(97) #location of north in the image
 
 
 for ff,i in enumerate(cmes):
-    print 'NEW CME [km/s] ID = {0:2d}'.format(ff+1)
+    print 'NEW CME ID = {0:2d}'.format(ff+1)
 
 #initalize variables before while loop
     base = i['start_dt']
@@ -153,12 +153,13 @@ for ff,i in enumerate(cmes):
     timea = [] #an empty list of times of observation
     timea.append(neval)
     obsed.append(obstest.size)
-#calc the velocty using the CME trajectory and C2 CACTus velocity
+#calc the Sun's radius using the time of the observation [arcsec/R_sun]
     solarrad = sunpy.sun.solar_semidiameter_angular_size(i['start_dt']).value
 
 #Caclculate the positin difference for said time
     dx,dy,minv = calc_min_v(i,solarrad,theta1)
-    px,py = dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad #velocity by just comparing the CACTus and Filament catalongs
+    #velocity by just comparing the CACTus and Filament catalongs
+    px,py = dx/60.*kmsolar/solarrad,dy/60.*kmsolar/solarrad # (arcsec/min)/(60s/min)*(km/R_sun)/(R_sun/arcsec) = km/s
     
 #calc the velocty using the CME trajectory and C2 CACTus velocity
     vx,vy = return_obs_vel_comp(i,solarrad,theta1)
@@ -168,7 +169,9 @@ for ff,i in enumerate(cmes):
 
     dx,dy = (np.array([vx,vy])/kmsolar)*(60.*solarrad) #(km/s)*(Rsun/km)*(s/min)*(arcsec/Rsun) = arcsec/min
     print 'AIA to CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(px,py)
-    print 'CaCTUS velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(vx,vy)
+    print 'CACTus velocity (Vx,Vy) = ({0:5.2f},{1:5.2f}) [km/s]'.format(vx,vy)
+    print 'Factor increase using CACTus CME value = {0:5.2f},{1:5.2f}'.format(vx/px,vy/py)
+
 
 #initalize x and y arrays
     xs = [i['X']]
