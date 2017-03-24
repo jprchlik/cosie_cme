@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 hv = HelioviewerClient()
 from datetime import timedelta,datetime
 import os
+from make_movie import create_movie
 
 
 
@@ -50,3 +51,7 @@ class dl_event:
                                "[SDO,AIA,AIA,{0},1,100],[SOHO,LASCO,C2,white-light,1,100]".format(self.aia),
                                directory=self.bdir+self.edir,
                                x0=self.x0, y0=self.y0, width=self.h0, height=self.w0,watermark=self.water)
+
+    def make_movie_files(self):
+        movie = create_movie(pdir=self.bdir+self.end,ext='png',w0=self.w0,h0=self.h0,frate=12,outmovie=self.start.strftime('%Y_%m_%d_'+self.aia+'.mp4')
+        movie.create_movie()
