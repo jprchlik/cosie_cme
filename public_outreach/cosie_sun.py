@@ -15,7 +15,7 @@ kmsolar = 6.96*10.**5. #solar radii to km
 def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
 #LASCO X and Y values
 #current solar radius at time of obs in solar arcseconds
-    rad = detrad*solarrad #arcsec lasco C2 inner edge
+    rad = detrad*solarrad #arcsec lasco C2 inner edge from http://adsabs.harvard.edu/abs/1995SoPh..162..357B
 
     LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
 #total obs time
