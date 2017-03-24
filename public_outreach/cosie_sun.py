@@ -35,16 +35,19 @@ def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=1.5):
     
     paa = np.arange(i['pa']-i['da']/2.,i['pa']+i['da']/2.,res)
 
-    LX,LY,paa = cal_ind_v(paa,theta1,detrad,solarrad)
+
+#    LX,LY,paa = cal_ind_v(paa,theta1,detrad,solarrad)
+#get the X and Y position from CACTus and return position angle
     LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
 
 
+#Change from the CACTus C2 from initial 
     dx,dy = float(LX-i['X']),float(LY-i['Y'])
     theta_obs = atan2(dy,dx)
 
-    vx,vy = i['v']*cos(theta_obs),i['v']*sin(theta_obs) #km/s
+    vx,vy = i['v']*cos(theta_obs),i['v']*sin(theta_obs) #decompose velocity from CACTus catalog [km/s]
 
-
+#Abosolute velocity
     v = np.sqrt(vx**2+vy**2)
 
     return vx,vy
@@ -146,15 +149,18 @@ for ff,i in enumerate(cmes):
     obstest, = np.where((obst['start_dt'] <= neval ) & (obst['end_dt'] >= neval))
 
 #Find where COSE Eclipses would occur during test 2011 observations
-    obsed = []
-    timea = []
+    obsed = [] #an empty list which will tell whether the CME is observed 1 if yes 0 if no
+    timea = [] #an empty list of times of observation
     timea.append(neval)
     obsed.append(obstest.size)
-#calc smallest velocity
+#calc the velocty using the CME trajectory and C2 CACTus velocity
     solarrad = sunpy.sun.solar_semidiameter_angular_size(i['start_dt']).value
+
+#Caclculate the positin difference for said time
     dx,dy,minv = calc_min_v(i,solarrad,theta1)
     px,py = dx*kmsolar/60./solarrad,dy*kmsolar/60./solarrad #velocity by just comparing the CACTus and Filament catalongs
     
+#calc the velocty using the CME trajectory and C2 CACTus velocity
     vx,vy = return_obs_vel_comp(i,solarrad,theta1)
 
 #    print i['v']
@@ -171,6 +177,7 @@ for ff,i in enumerate(cmes):
   #loop variable 
     k=0 
 #    while neval <= i['end_dt']:
+####LOOK and see if Observed CME is in eclipse time for ISS
     while ((np.abs(xs[-1]) < 3.3*solarrad) & (np.abs(ys[-1]) < 3.3*solarrad)):
         neval = neval+timedelta(minutes=timeres) 
         timea.append(neval)
@@ -248,12 +255,3 @@ ax1.set_ylabel('Y [R$_\odot$]',fontsize=44)
 fig1.savefig('COSIE_CME_plot.png',bbox_pad=None,bbox_inches=0,dpi=200)
 #plt.show()
     
-         
-
-
-    
-
-#event_type='CME'
-#for i in np.arange(cmes['start'].size):
-#    result = client.query(hek.attrs.Time(cmes['start'][i].replace('T',' '),cmes['end'][i].replace('T',' ')),hek.attrs.EventType(event_type))
-#    print result
