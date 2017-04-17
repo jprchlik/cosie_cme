@@ -12,7 +12,7 @@ from math import atan2,cos,sin
 
 kmsolar = 6.96*10.**5. #solar radii to km
 #Calculate the allowed dv for LASCO to CME using available position angles 
-def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
+def calc_min_v(i,solarad,theta1,res=0.5,detrad=2.5):
 #LASCO X and Y values
 #current solar radius at time of obs in solar arcseconds
     rad = detrad*solarrad #arcsec lasco C2 inner edge from http://adsabs.harvard.edu/abs/1995SoPh..162..357B
@@ -29,7 +29,7 @@ def calc_min_v(i,solarad,theta1,res=0.5,detrad=1.5):
     
 
 #Calculate Vx an Vy components of CME using position of detected CME in CaCTUS
-def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=1.5):
+def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=2.5):
     global kmsolar
 
     
