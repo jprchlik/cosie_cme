@@ -74,6 +74,10 @@ def calc_dt(tab,strtime,fmt):
 #All cactus CMEs
 cmes = pd.read_csv('../filament/cme_lz.txt',sep='|',escapechar='#',skiprows=23)
 
+#remove whitespaces from pandas headers
+cmes.rename(columns=lambda x: x.strip(),inplace=True)
+
+
 #Read in 2011 orbital file
 obst = pd.read_csv('../filament/python_f_cosie_obs.csv',sep=',',skiprows=1)
 
@@ -83,6 +87,11 @@ obst['obs'] = 1
 #convert start good observing time to datetime object
 obst['start_dt'] = pd.to_datetime(obst.start)
 obst.set_index(obst.start_dt,inplace=True)
+
+#cut out region for testing 2011 purposes 2018/02/13 J. Prchlik
+cmes.set_index(pd.to_datetime(cmes.t0),inplace=True)
+cmes = cmes.loc['2011-01-01':'2012-01-01']
+obst = obst.loc['2011-01-01':'2012-01-01']
 
 #bad time pandas dataframe
 badt = pd.DataFrame()
@@ -101,18 +110,17 @@ tott = pd.concat([obst,badt])
 tott.sort_index(inplace=True)
 
 
-#create observation obscured or unobscured
-relt = pd.DataFrame(index=pd.date_range(tott.index.min(),tott.index.max(),freq='30S'),columns=['obs'])
+#create observation obscured or unobscured Use 30s COSIE cadence
+cad = '30S'
+relt = pd.DataFrame(index=pd.date_range(tott.index.min(),tott.index.max(),freq=cad),columns=['obs'])
 
-#interpolate total observation time onto new grid
+#interpolate total observation time onto new grid forward filling all 1s and 0s
 tott = tott.reindex(relt.index,method='ffill')
 
 
-#remove whitespaces from pandas headers
-cmes.rename(columns=lambda x: x.strip(),inplace=True)
 
 #remove whitespace from halo identifier
-cmes['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
+#cmes['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
 
 #remove all cmes without the Halo distinction
 cmes = cmes[cmes['halo?'] != '']
@@ -140,13 +148,22 @@ cmes['start_dt'] = cmes.cactus_dt-cmes.dt_limb
 cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 
 
-timeres = 0.5 #half minute is fast COSIE cadence (30s)
+#observed duration (get sum all observation times [0 when none, 1 when observed] from 2011 orbit)
+cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
 
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
 theta1 = np.radians(90) #location of north in the image
 
+fig1, ax1 = plt.subplots()
 
+ax1.scatter(cmes.v,cmes.obs_dur,color='black')
+ax1.set_xlabel('CACTus Velocity [km/s]')
+ax1.set_ylabel('Number of Frames with CME [\#]')
+
+fancy_plot(ax1)
+
+fig1.savefig('cactus_frame_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
 
 #CUT SHORT for testing purposes
