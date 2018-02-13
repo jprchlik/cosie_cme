@@ -204,12 +204,12 @@ ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0
 #plot velocity histogram
 ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
 ax2[0,0].set_xticklabels([])
-ax2[0,0].set_ylabel('# of CMEs')
+ax2[0,0].set_ylabel('Occurrence [%]')
 
 #plot observation time histogram
 ax2[1,1].plot(hbin1,hplt1,color='black',linewidth=3)
 ax2[1,1].set_yticklabels([])
-ax2[1,1].set_xlabel('# of CMEs')
+ax2[1,1].set_xlabel('Occurrence [%]')
 
 fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
