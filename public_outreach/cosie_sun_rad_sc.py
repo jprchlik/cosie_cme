@@ -160,7 +160,7 @@ bcme = cmes.groupby(np.digitize(cmes.v,bins))
 #get cme obseration duration bins
 res1 = 300
 bins1 = np.arange(0,15000,res1)
-bdur = cmes.groupby(np.digitize(cmes.v,bins1))
+bdur = cmes.groupby(np.digitize(cmes.obs_dur,bins1))
 
 #used bins for plotting
 ubin = bins[bcme.obs_dur.mean().index.values]+(res/2.)
@@ -170,8 +170,8 @@ hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values]]).rav
 hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
 
 #bins for histogram plotting cme obs. duration
-hbin1 = np.array([[i,i+res1] for i in bins[bdir.obs_dur.mean().index.values]]).ravel()
-hplt1 = np.array([[i,i] for i in 100.*bdir.size()/len(cmes)]).ravel()
+hbin1 = np.array([[i,i+res1] for i in bins1[bdur.obs_dur.mean().index.values]]).ravel()
+hplt1 = np.array([[i,i] for i in 100.*bdur.size()/len(cmes)]).ravel()
 
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
@@ -205,11 +205,13 @@ ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0
 ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
 ax2[0,0].set_xticklabels([])
 ax2[0,0].set_ylabel('Occurrence [%]')
+ax2[0,0].set_xlim(ax2[1,0].get_xlim())
 
 #plot observation time histogram
-ax2[1,1].plot(hbin1,hplt1,color='black',linewidth=3)
+ax2[1,1].plot(hplt1,hbin1,color='black',linewidth=3)
 ax2[1,1].set_yticklabels([])
 ax2[1,1].set_xlabel('Occurrence [%]')
+ax2[1,1].set_ylim(ax2[1,0].get_ylim())
 
 fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
