@@ -157,12 +157,21 @@ res = 100
 bins = np.arange(0,1500,res)
 bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
+#get cme obseration duration bins
+res1 = 300
+bins1 = np.arange(0,15000,res1)
+bdur = cmes.groupby(np.digitize(cmes.v,bins1))
+
 #used bins for plotting
 ubin = bins[bcme.obs_dur.mean().index.values]+(res/2.)
 
-#bins for histogram plotting
+#bins for histogram plotting cme velocity
 hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values]]).ravel()
 hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
+
+#bins for histogram plotting cme obs. duration
+hbin1 = np.array([[i,i+res1] for i in bins[bdir.obs_dur.mean().index.values]]).ravel()
+hplt1 = np.array([[i,i] for i in 100.*bdir.size()/len(cmes)]).ravel()
 
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
@@ -170,7 +179,7 @@ theta1 = np.radians(90) #location of north in the image
 
 fig1, ax1 = plt.subplots()
 
-ax1.scatter(cmes.v,cmes.obs_dur,color='black',label='Simulated CME')
+ax1.scatter(cmes.v,cmes.obs_dur,color='black',label='Sim.CME')
 ax1.errorbar(ubin+(res/2.),bcme.obs_dur.mean(),yerr=bcme.obs_dur.std(),fmt='s',color='red',label='Mean')
 ax1.set_xlabel('CACTus Velocity [km/s]')
 ax1.set_ylabel('COSIE Frames with CME [\#]')
@@ -179,44 +188,32 @@ fancy_plot(ax1)
 
 fig1.savefig('cactus_frame_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
-fig2, ax2 = plt.subplots()
+fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[2,1]},figsize=(12,12))
+fig2.subplots_adjust(hspace=0.1,wspace=0.1)
 
-ax2.scatter(cmes.v,cmes.obs_dur*30.,color='black',label='Simulated CME')
-ax2.errorbar(ubin,bcme.obs_dur.mean()*30.,yerr=bcme.obs_dur.std()*30.,fmt='s',color='red',label='Mean')
-ax2.set_xlabel('CACTus Velocity [km/s]')
-ax2.set_ylabel('COSIE Obs. Duration [s]')
-ax2.legend(loc='upper right',scatterpoints=1,frameon=False)
+#turn top right figure off
+ax2[0,1].axis('off')
 
-#make twin axis for plotting histogram 
-ax2b = ax2.twinx()
-ax2b.plot(hbin,hplt,'--',color='blue',linewidth=2)
-ax2b.set_ylabel('Occurrence [%]',color='blue')
+#plot scatter points
+ax2[1,0].scatter(cmes.v,cmes.obs_dur*30.,color='black',label='Sim. CME')
+ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*30.,yerr=bcme.obs_dur.std()*30.,fmt='s',color='red',label='Mean')
+ax2[1,0].set_xlabel('CACTus Velocity [km/s]')
+ax2[1,0].set_ylabel('COSIE Obs. Duration [s]')
+ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0.12)
 
+#plot velocity histogram
+ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
+ax2[0,0].set_xticklabels([])
+ax2[0,0].set_ylabel('# of CMEs')
 
-#Fixes left axis
-ax2.minorticks_on()
-ax2.yaxis.set_ticks_position('left')
-ax2.xaxis.set_ticks_position('both')
-#set the width of the ticks
-ax2.tick_params(which='both',width=1)
-#set the length of the major ticks
-ax2.tick_params(which='major',length=7)
-#set length of the minor ticks
-ax2.tick_params(which='minor',length=3,direction='in')
-ax2.tick_params(direction='in')
+#plot observation time histogram
+ax2[1,1].plot(hbin1,hplt1,color='black',linewidth=3)
+ax2[1,1].set_yticklabels([])
+ax2[1,1].set_xlabel('# of CMEs')
 
-#Fixes right axis
-ax2b.minorticks_on()
-ax2b.yaxis.set_ticks_position('right')
-ax2b.xaxis.set_ticks_position('both')
-#set the width of the ticks
-ax2b.tick_params(which='both',width=1)
-#set the length of the major ticks
-ax2b.tick_params(which='major',length=7)
-#set length of the minor ticks
-ax2b.tick_params(which='minor',length=3,direction='in')
-ax2b.tick_params(direction='in')
-
+fancy_plot(ax2[1,0])
+fancy_plot(ax2[1,1])
+fancy_plot(ax2[0,0])
 fig2.savefig('cactus_durat_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
 
