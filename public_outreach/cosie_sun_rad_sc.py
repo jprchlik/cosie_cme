@@ -138,7 +138,7 @@ r_lasco = 2.2 #Rsun (assume at minimum distance)
 
 #end cosie radius
 r_cosie = 3.0
-cmes['r_cosie'] = cmes.apply(lambda x: 3.*np.sqrt((np.cos(np.radians(x.pa)))**2.+1.),axis=1)
+cmes['r_cosie'] = cmes.apply(lambda x: 3.*(np.abs(np.cos(np.radians(x.pa)))+np.abs(np.sin(np.radians(x.pa)))),axis=1)
 
 #travel time between lasco cme detection and limb
 cmes['dt_limb'] = pd.to_timedelta(((2.2-1.)*kmsolar)/cmes.v,unit='s')
