@@ -120,7 +120,7 @@ tott = tott.reindex(relt.index,method='ffill')
 
 
 #remove whitespace from halo identifier
-#cmes['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
+cmes['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
 
 #remove all cmes without the Halo distinction
 cmes = cmes[cmes['halo?'] != '']
@@ -152,15 +152,25 @@ cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
 
 
+#get cme velocity bins
+res = 100
+bins = np.arange(0,1500,res)
+bcme = cmes.groupby(np.digitize(cmes.v,bins))
+
+#used bins for plotting
+ubin = bins[bcme.obs_dur.mean().index.values]
+
+
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
 theta1 = np.radians(90) #location of north in the image
 
 fig1, ax1 = plt.subplots()
 
-ax1.scatter(cmes.v,cmes.obs_dur,color='black')
+ax1.scatter(cmes.v,cmes.obs_dur,color='black',label='Simulated CME')
+ax1.errorbar(ubin+(res/2.),bcme.obs_dur.mean(),yerr=bcme.obs_dur.std(),fmt='s',color='red',label='Mean')
 ax1.set_xlabel('CACTus Velocity [km/s]')
-ax1.set_ylabel('Number of Frames with CME [\#]')
-
+ax1.set_ylabel('COSIE Frames with CME [\#]')
+ax1.legend(loc='upper right',scatterpoints=1,frameon=False)
 fancy_plot(ax1)
 
 fig1.savefig('cactus_frame_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
