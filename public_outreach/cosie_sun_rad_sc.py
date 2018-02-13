@@ -160,18 +160,22 @@ bcme = cmes.groupby(np.digitize(cmes.v,bins))
 #get cme obseration duration bins
 res1 = 300
 bins1 = np.arange(0,15000,res1)
-bdur = cmes.groupby(np.digitize(cmes.obs_dur,bins1))
+bdur = cmes.groupby(np.digitize(cmes.obs_dur*30.,bins1))
 
 #used bins for plotting
-ubin = bins[bcme.obs_dur.mean().index.values]+(res/2.)
+ubin = bins[bcme.obs_dur.mean().index.values-1]+(res/2.)
 
 #bins for histogram plotting cme velocity
-hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values]]).ravel()
+hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values-1]]).ravel()
+hbin = np.concatenate([[hbin[0]],hbin,[hbin[-1]]])
 hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
+hplt = np.concatenate([[0],hplt,[0]])
 
 #bins for histogram plotting cme obs. duration
-hbin1 = np.array([[i,i+res1] for i in bins1[bdur.obs_dur.mean().index.values]]).ravel()
+hbin1 = np.array([[i,i+res1] for i in bins1[bdur.obs_dur.mean().index.values-1]]).ravel()
+hbin1 = np.concatenate([[hbin1[0]],hbin1,[hbin1[-1]]])
 hplt1 = np.array([[i,i] for i in 100.*bdur.size()/len(cmes)]).ravel()
+hplt1 = np.concatenate([[0],hplt1,[0]])
 
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
