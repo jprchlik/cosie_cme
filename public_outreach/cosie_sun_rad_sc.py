@@ -92,6 +92,13 @@ badt.set_index(badt.start_dt,inplace=True)
 
 
 #drop start and end columns so I can stack and sort 
+#Not needed
+#obst.drop(['start','end'],inplace=True)
+
+
+#Obscured and unobscured observer times in one array
+tott = pd.concat([obst,badt])
+tott.sort_index(inplace=True)
 
 #remove whitespaces from pandas headers
 cmes.rename(columns=lambda x: x.strip(),inplace=True)
