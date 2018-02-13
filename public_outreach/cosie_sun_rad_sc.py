@@ -112,6 +112,7 @@ tott.sort_index(inplace=True)
 
 #create observation obscured or unobscured Use 30s COSIE cadence
 cad = '30S'
+scl = float(cad[:-1]) #turn cadence into a float
 relt = pd.DataFrame(index=pd.date_range(tott.index.min(),tott.index.max(),freq=cad),columns=['obs'])
 
 #interpolate total observation time onto new grid forward filling all 1s and 0s
@@ -137,10 +138,11 @@ r_lasco = 2.2 #Rsun (assume at minimum distance)
 
 #end cosie radius
 r_cosie = 3.0
+cmes['r_cosie'] = cmes.apply(lambda x: 3.*np.sqrt((np.cos(np.radians(x.pa)))**2.+1.),axis=1)
 
 #travel time between lasco cme detection and limb
 cmes['dt_limb'] = pd.to_timedelta(((2.2-1.)*kmsolar)/cmes.v,unit='s')
-cmes['dt_cosf'] = pd.to_timedelta(((3.-2.2)*kmsolar)/cmes.v,unit='s')
+cmes['dt_cosf'] = pd.to_timedelta(((cmes.r_cosie-2.2)*kmsolar)/cmes.v,unit='s')
 
 
 #start and end times for cme assuming constant velocity
@@ -160,7 +162,7 @@ bcme = cmes.groupby(np.digitize(cmes.v,bins))
 #get cme obseration duration bins
 res1 = 300
 bins1 = np.arange(0,15000,res1)
-bdur = cmes.groupby(np.digitize(cmes.obs_dur*30.,bins1))
+bdur = cmes.groupby(np.digitize(cmes.obs_dur*scl,bins1))
 
 #used bins for plotting
 ubin = bins[bcme.obs_dur.mean().index.values-1]+(res/2.)
@@ -172,11 +174,14 @@ hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
 hplt = np.concatenate([[0],hplt,[0]])
 
 #bins for histogram plotting cme obs. duration
-hbin1 = np.array([[i,i+res1] for i in bins1[bdur.obs_dur.mean().index.values-1]]).ravel()
-hbin1 = np.concatenate([[hbin1[0]],hbin1,[hbin1[-1]]])
-hplt1 = np.array([[i,i] for i in 100.*bdur.size()/len(cmes)]).ravel()
-hplt1 = np.concatenate([[0],hplt1,[0]])
-
+## Change to CDF 2018/02/13 J. Prchlik
+##hbin1 = np.array([[i,i+res1] for i in bins1[bdur.obs_dur.mean().index.values-1]]).ravel()
+##hbin1 = np.concatenate([[hbin1[0]],hbin1,[hbin1[-1]]])
+##hplt1 = np.array([[i,i] for i in 100.*bdur.size()/len(cmes)]).ravel()
+##hplt1 = np.concatenate([[0],hplt1,[0]])
+##
+hbin1 = cmes.obs_dur.sort_values()*scl
+hplt1 = np.arange(len(hbin1))/float(len(hbin1)-1)
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
 theta1 = np.radians(90) #location of north in the image
@@ -193,14 +198,14 @@ fancy_plot(ax1)
 fig1.savefig('cactus_frame_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
 fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[2,1]},figsize=(12,12))
-fig2.subplots_adjust(hspace=0.1,wspace=0.1)
+fig2.subplots_adjust(hspace=0.05,wspace=0.05)
 
 #turn top right figure off
 ax2[0,1].axis('off')
 
 #plot scatter points
-ax2[1,0].scatter(cmes.v,cmes.obs_dur*30.,color='black',label='Sim. CME')
-ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*30.,yerr=bcme.obs_dur.std()*30.,fmt='s',color='red',label='Mean')
+ax2[1,0].scatter(cmes.v,cmes.obs_dur*scl,color='black',label='Sim. CME')
+ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*scl,yerr=bcme.obs_dur.std()*scl,fmt='s',color='red',label='Mean')
 ax2[1,0].set_xlabel('CACTus Velocity [km/s]')
 ax2[1,0].set_ylabel('COSIE Obs. Duration [s]')
 ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0.12)
@@ -214,7 +219,7 @@ ax2[0,0].set_xlim(ax2[1,0].get_xlim())
 #plot observation time histogram
 ax2[1,1].plot(hplt1,hbin1,color='black',linewidth=3)
 ax2[1,1].set_yticklabels([])
-ax2[1,1].set_xlabel('Occurrence [%]')
+ax2[1,1].set_xlabel('Cumulative Distribution')
 ax2[1,1].set_ylim(ax2[1,0].get_ylim())
 
 fancy_plot(ax2[1,0])
