@@ -100,6 +100,14 @@ badt.set_index(badt.start_dt,inplace=True)
 tott = pd.concat([obst,badt])
 tott.sort_index(inplace=True)
 
+
+#create observation obscured or unobscured
+relt = pd.DataFrame(index=pd.date_range(tott.index.min(),tott.index.max(),freq='30S'),columns=['obs'])
+
+#interpolate total observation time onto new grid
+tott = tott.reindex(relt.index,method='ffill')
+
+
 #remove whitespaces from pandas headers
 cmes.rename(columns=lambda x: x.strip(),inplace=True)
 
