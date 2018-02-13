@@ -90,7 +90,7 @@ obst.set_index(obst.start_dt,inplace=True)
 
 #cut out region for testing 2011 purposes 2018/02/13 J. Prchlik
 cmes.set_index(pd.to_datetime(cmes.t0),inplace=True)
-cmes = cmes.loc['2011-01-01':'2012-01-01']
+cmes = cmes.loc['2004-10-31':'2015-10-31']
 obst = obst.loc['2011-01-01':'2012-01-01']
 
 #bad time pandas dataframe
@@ -111,7 +111,7 @@ tott.sort_index(inplace=True)
 
 
 #create observation obscured or unobscured Use 30s COSIE cadence
-cad = '30S'
+cad = '10S'
 scl = float(cad[:-1]) #turn cadence into a float
 relt = pd.DataFrame(index=pd.date_range(tott.index.min(),tott.index.max(),freq=cad),columns=['obs'])
 
@@ -129,7 +129,9 @@ cmes = cmes[cmes['halo?'] != '']
 d_fmt ='%Y/%m/%d %H:%M'
 
 #turns string times into arrays and adds to pandas array
-cmes['cactus_dt'] = pd.to_datetime(cmes.t0)
+#cmes['cactus_dt'] = pd.to_datetime(cmes.t0)
+#Changed to random starttime 2018/02/13 J. Prchlik
+cmes['cactus_dt'] = relt.sample(n=len(cmes)).index.to_pydatetime() #cmes.t1
 
 #inner size of lasco C2 coronagraph
 #http://adsabs.harvard.edu/cgi-bin/nph-bib_query?1995SoPh..162..357B&db_key=AST
@@ -150,13 +152,14 @@ cmes['start_dt'] = cmes.cactus_dt-cmes.dt_limb
 cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 
 
+
 #observed duration (get sum all observation times [0 when none, 1 when observed] from 2011 orbit)
 cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
 
 
 #get cme velocity bins
 res = 100
-bins = np.arange(0,1500,res)
+bins = np.arange(0,2500,res)
 bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
 #get cme obseration duration bins
@@ -181,7 +184,7 @@ hplt = np.concatenate([[0],hplt,[0]])
 ##hplt1 = np.concatenate([[0],hplt1,[0]])
 ##
 hbin1 = cmes.obs_dur.sort_values()*scl
-hplt1 = np.arange(len(hbin1))/float(len(hbin1)-1)
+hplt1 = 100.*np.arange(len(hbin1))/float(len(hbin1)-1)
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
 theta1 = np.radians(90) #location of north in the image
@@ -215,12 +218,14 @@ ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
 ax2[0,0].set_xticklabels([])
 ax2[0,0].set_ylabel('Occurrence [%]')
 ax2[0,0].set_xlim(ax2[1,0].get_xlim())
+ax2[0,0].set_ylim([0.,30.])
 
 #plot observation time histogram
 ax2[1,1].plot(hplt1,hbin1,color='black',linewidth=3)
 ax2[1,1].set_yticklabels([])
-ax2[1,1].set_xlabel('Cumulative Distribution')
+ax2[1,1].set_xlabel('Cumulative Dist. [%]')
 ax2[1,1].set_ylim(ax2[1,0].get_ylim())
+ax2[1,1].set_xlim([0.,105.])
 
 fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
