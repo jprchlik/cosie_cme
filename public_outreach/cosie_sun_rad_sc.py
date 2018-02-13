@@ -158,7 +158,11 @@ bins = np.arange(0,1500,res)
 bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
 #used bins for plotting
-ubin = bins[bcme.obs_dur.mean().index.values]
+ubin = bins[bcme.obs_dur.mean().index.values]+(res/2.)
+
+#bins for histogram plotting
+hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values]]).ravel()
+hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
 
 
 ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
@@ -175,6 +179,50 @@ fancy_plot(ax1)
 
 fig1.savefig('cactus_frame_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
+fig2, ax2 = plt.subplots()
+
+ax2.scatter(cmes.v,cmes.obs_dur*30.,color='black',label='Simulated CME')
+ax2.errorbar(ubin,bcme.obs_dur.mean()*30.,yerr=bcme.obs_dur.std()*30.,fmt='s',color='red',label='Mean')
+ax2.set_xlabel('CACTus Velocity [km/s]')
+ax2.set_ylabel('COSIE Obs. Duration [s]')
+ax2.legend(loc='upper right',scatterpoints=1,frameon=False)
+
+#make twin axis for plotting histogram 
+ax2b = ax2.twinx()
+ax2b.plot(hbin,hplt,'--',color='blue',linewidth=2)
+ax2b.set_ylabel('Occurrence [%]',color='blue')
+
+
+#Fixes left axis
+ax2.minorticks_on()
+ax2.yaxis.set_ticks_position('left')
+ax2.xaxis.set_ticks_position('both')
+#set the width of the ticks
+ax2.tick_params(which='both',width=1)
+#set the length of the major ticks
+ax2.tick_params(which='major',length=7)
+#set length of the minor ticks
+ax2.tick_params(which='minor',length=3,direction='in')
+ax2.tick_params(direction='in')
+
+#Fixes right axis
+ax2b.minorticks_on()
+ax2b.yaxis.set_ticks_position('right')
+ax2b.xaxis.set_ticks_position('both')
+#set the width of the ticks
+ax2b.tick_params(which='both',width=1)
+#set the length of the major ticks
+ax2b.tick_params(which='major',length=7)
+#set length of the minor ticks
+ax2b.tick_params(which='minor',length=3,direction='in')
+ax2b.tick_params(direction='in')
+
+fig2.savefig('cactus_durat_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
+
+
+#CUT SHORT for testing purposes
+#cmes = cmes[:3]
+#Do not apply cacl. for now 2018/02/13 J. Prchlik
 
 #CUT SHORT for testing purposes
 #cmes = cmes[:3]
