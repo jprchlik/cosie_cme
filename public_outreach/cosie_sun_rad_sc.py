@@ -152,13 +152,13 @@ cme_list = [cmes.copy() for i in range(loops)]
 cmes = pd.concat(cme_list)
 
 #get random starttimes
-pool = Pool(processes=4)
-outp = pool.map(sample_times_cmes,range(len(cmes)))
-pool.close()
-pool.join()
+#pool = Pool(processes=4)
+#outp = pool.map(sample_times_cmes,range(len(cmes)))
+#pool.close()
+#pool.join()
 
-#add startimes to pandas array
-cmes['cactus_dt'] = outp
+#add startimes to pandas array (just use pd.totimedelta
+cmes['cactus_dt'] = datetime(2011,1,1,0,0,0)+pd.to_timedelta(np.random.randint(0,31556926,size=len(cmes)),unit='s') 
 
 
 #inner size of lasco C2 coronagraph
@@ -183,6 +183,11 @@ cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 
 #observed duration (get sum all observation times [0 when none, 1 when observed] from 2011 orbit)
 cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
+
+
+#write out simulated cmes
+cmes.to_csv('simulated_cosie_cme.csv')
+
 
 
 #get cme velocity bins
@@ -260,7 +265,6 @@ fancy_plot(ax2[1,1])
 fancy_plot(ax2[0,0])
 fig2.savefig('cactus_durat_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
-cmes.to_csv('simulated_cosie_cme.csv')
 
 #CUT SHORT for testing purposes
 #cmes = cmes[:3]
