@@ -145,14 +145,14 @@ d_fmt ='%Y/%m/%d %H:%M'
 #turns string times into arrays and adds to pandas array
 #cmes['cactus_dt'] = pd.to_datetime(cmes.t0)
 #Changed to random starttime 2018/02/13 J. Prchlik
-loops = 10
+loops = 1000
 
 #create larger dataframe
 cme_list = [cmes.copy() for i in range(loops)]
 cmes = pd.concat(cme_list)
 
 #get random starttimes
-pool = Pool(processes=8)
+pool = Pool(processes=4)
 outp = pool.map(sample_times_cmes,range(len(cmes)))
 pool.close()
 pool.join()
@@ -260,7 +260,7 @@ fancy_plot(ax2[1,1])
 fancy_plot(ax2[0,0])
 fig2.savefig('cactus_durat_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
 
-
+cmes.to_csv('simulated_cosie_cme.csv')
 
 #CUT SHORT for testing purposes
 #cmes = cmes[:3]
