@@ -10,6 +10,7 @@ import sunpy.sun
 import matplotlib.image as mpimg
 from math import atan2,cos,sin
 import pandas as pd
+from multiprocessing import Pool
 
 kmsolar = 6.96*10.**5. #solar radii to km
 #Calculate the allowed dv for LASCO to CME using available position angles 
@@ -28,6 +29,13 @@ def calc_min_v(i,solarad,theta1,res=0.5,detrad=2.5):
 
     return dx,dy,v
     
+#function to get radius of box at a given position
+def box_func(deg,rad=3.):
+    if ((deg < 45.) | ((deg >= 135.) & (deg < 225.)) | (deg > 315.)):
+        r = rad*np.sqrt(1.+np.tan(np.radians(deg))**2.)
+    else:
+        r = rad*np.sqrt(1.+(1./np.tan(np.radians(deg)))**2.)
+    return r
 
 #Calculate Vx an Vy components of CME using position of detected CME in CaCTUS
 def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=2.5):
@@ -68,6 +76,12 @@ def calc_dt(tab,strtime,fmt):
     for i in strtime: tab[i+'_dt'] = [datetime.strptime(date,fmt) for date in tab[i]]
 
     return tab
+
+#get a random sample of cme times
+def sample_times_cmes(cme):
+    start = datetime(2011,1,1,0,0,0)+timedelta(seconds=np.random.randint(0,31556926)) 
+    return start
+
 
 #client = hek.HEKClient()
 
@@ -131,7 +145,21 @@ d_fmt ='%Y/%m/%d %H:%M'
 #turns string times into arrays and adds to pandas array
 #cmes['cactus_dt'] = pd.to_datetime(cmes.t0)
 #Changed to random starttime 2018/02/13 J. Prchlik
-cmes['cactus_dt'] = relt.sample(n=len(cmes)).index.to_pydatetime() #cmes.t1
+loops = 10
+
+#create larger dataframe
+cme_list = [cmes.copy() for i in range(loops)]
+cmes = pd.concat(cme_list)
+
+#get random starttimes
+pool = Pool(processes=8)
+outp = pool.map(sample_times_cmes,range(len(cmes)))
+pool.close()
+pool.join()
+
+#add startimes to pandas array
+cmes['cactus_dt'] = outp
+
 
 #inner size of lasco C2 coronagraph
 #http://adsabs.harvard.edu/cgi-bin/nph-bib_query?1995SoPh..162..357B&db_key=AST
@@ -140,7 +168,7 @@ r_lasco = 2.2 #Rsun (assume at minimum distance)
 
 #end cosie radius
 r_cosie = 3.0
-cmes['r_cosie'] = cmes.apply(lambda x: 3.*(np.abs(np.cos(np.radians(x.pa)))+np.abs(np.sin(np.radians(x.pa)))),axis=1)
+cmes['r_cosie'] = cmes.apply(lambda x: box_func(x.pa),axis=1)
 
 #travel time between lasco cme detection and limb
 cmes['dt_limb'] = pd.to_timedelta(((2.2-1.)*kmsolar)/cmes.v,unit='s')
@@ -231,6 +259,7 @@ fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
 fancy_plot(ax2[0,0])
 fig2.savefig('cactus_durat_obs_vs_vel.png',bbox_pad=.1,bbox_inches='tight')
+
 
 
 #CUT SHORT for testing purposes
