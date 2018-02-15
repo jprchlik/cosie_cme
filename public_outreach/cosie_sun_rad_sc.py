@@ -127,8 +127,16 @@ cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 #observed duration (get sum all observation times [0 when none, 1 when observed] from 2011 orbit)
 cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
 
+
+#Detection fraction threshold
+thres = (30.+scl)/scl
+
 #Print successful observation rate
-print('Success Rate = {0:3.1f} %'.format(100.*len(cmes.loc[cmes.obs_dur > 2,:])/float(len(cmes))))
+print('Sucess Rate = {0:3.1f} %'.format(100.*len(cmes.loc[cmes.obs_dur > thres,:])/float(len(cmes))))
+
+#Does COSIE observe a particular event with at least 2 observations J. Prchlik 2018/02/15
+cmes['two_obs'] = 0
+cmes.loc[cmes.obs_dur > thres,'two_obs'] = 1 
 
 #write out simulated cmes
 cmes.to_csv('simulated_cosie_cme.csv')
@@ -149,9 +157,14 @@ bdur = cmes.groupby(np.digitize(cmes.obs_dur*scl,bins1))
 ubin = bins[bcme.obs_dur.mean().index.values-1]+(res/2.)
 
 #bins for histogram plotting cme velocity
+#velocity bins
 hbin = np.array([[i,i+res] for i in bins[bcme.obs_dur.mean().index.values-1]]).ravel()
 hbin = np.concatenate([[hbin[0]],hbin,[hbin[-1]]])
+#Percent of total cmes
 hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
+hplt = np.concatenate([[0],hplt,[0]])
+#Switch to detection percentage based on email for Leon 2018/02/15
+hplt = np.array([[i,i] for i in 100.*bcme.two_obs.sum()/bcme.count()]).ravel()
 hplt = np.concatenate([[0],hplt,[0]])
 
 #bins for histogram plotting cme obs. duration
@@ -194,9 +207,13 @@ ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0
 #plot velocity histogram
 ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
 ax2[0,0].set_xticklabels([])
-ax2[0,0].set_ylabel('Occurrence [%]')
+#ax2[0,0].set_ylabel('Occurrence [%]')
+#Switch to detection fraction based on email from Leon on 2018/02/15
+ax2[0,0].set_ylabel('Detection Fraction [%]')
 ax2[0,0].set_xlim(ax2[1,0].get_xlim())
-ax2[0,0].set_ylim([0.,30.])
+#Switch to detection fraction based on email from Leon on 2018/02/15
+#ax2[0,0].set_ylim([0.,30.])
+ax2[0,0].set_ylim([0.,100.])
 
 #plot observation time histogram
 ax2[1,1].plot(hplt1,hbin1,color='black',linewidth=3)
