@@ -13,22 +13,7 @@ import pandas as pd
 from multiprocessing import Pool
 
 kmsolar = 6.96*10.**5. #solar radii to km
-#Calculate the allowed dv for LASCO to CME using available position angles 
-def calc_min_v(i,solarad,theta1,res=0.5,detrad=2.5):
-#LASCO X and Y values
-#current solar radius at time of obs in solar arcseconds
-    rad = detrad*solarrad #arcsec lasco C2 inner edge from http://adsabs.harvard.edu/abs/1995SoPh..162..357B
 
-    LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
-#total obs time
-    obstime = float((i['end_dt']-i['start_dt']).seconds/60.) #minutes 
-    dx = (LX-i['X'])/obstime #arcsec per min
-    dy = (LY-i['Y'])/obstime #arcsec per min
-
-    v = np.sqrt(dx**2+dy**2)
-
-    return dx,dy,v
-    
 #function to get radius of box at a given position
 def box_func(deg,rad=3.):
     if ((deg < 45.) | ((deg >= 135.) & (deg < 225.)) | (deg > 315.)):
@@ -37,53 +22,11 @@ def box_func(deg,rad=3.):
         r = rad*np.sqrt(1.+(1./np.tan(np.radians(deg)))**2.)
     return r
 
-#Calculate Vx an Vy components of CME using position of detected CME in CaCTUS
-def return_obs_vel_comp(i,solarrad,theta1,res=0.5,detrad=2.5):
-    global kmsolar
-
-    
-    paa = np.arange(i['pa']-i['da']/2.,i['pa']+i['da']/2.,res)
-
-
-#    LX,LY,paa = cal_ind_v(paa,theta1,detrad,solarrad)
-#get the X and Y position from CACTus and return position angle
-    LX,LY,paa = cal_ind_v(i['pa'],theta1,detrad,solarrad)
-
-
-#Change from the CACTus C2 from initial 
-    dx,dy = float(LX-i['X']),float(LY-i['Y'])
-    theta_obs = atan2(dy,dx)
-
-    vx,vy = i['v']*cos(theta_obs),i['v']*sin(theta_obs) #decompose velocity from CACTus catalog [km/s]
-
-#Abosolute velocity
-    v = np.sqrt(vx**2+vy**2)
-
-    return vx,vy
-
-
-##CALCULATE X,Y VALUES IN ARCSEC
-def cal_ind_v(paa,theta1,detrad,solarrad):
-
-    LX,LY = solarrad*detrad*np.cos(np.radians(paa)+theta1),solarrad*detrad*np.sin(np.radians(paa)+theta1) #arcseconds
-
-    return LX,LY,paa
-
-
-#calculates datetime of column in array
-def calc_dt(tab,strtime,fmt):
-
-    for i in strtime: tab[i+'_dt'] = [datetime.strptime(date,fmt) for date in tab[i]]
-
-    return tab
-
-#get a random sample of cme times
+#get a random sample of cme times (Switch to pandas pd.to_timedelta 2018/02/14 because it is faster)
 def sample_times_cmes(cme):
     start = datetime(2011,1,1,0,0,0)+timedelta(seconds=np.random.randint(0,31556926)) 
     return start
 
-
-#client = hek.HEKClient()
 
 #All cactus CMEs
 cmes = pd.read_csv('../filament/cme_lz.txt',sep='|',escapechar='#',skiprows=23)
