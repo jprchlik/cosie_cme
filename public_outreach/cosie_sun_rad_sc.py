@@ -164,7 +164,7 @@ hbin = np.concatenate([[hbin[0]],hbin,[hbin[-1]]])
 hplt = np.array([[i,i] for i in 100.*bcme.size()/len(cmes)]).ravel()
 hplt = np.concatenate([[0],hplt,[0]])
 #Switch to detection percentage based on email for Leon 2018/02/15
-hplt = np.array([[i,i] for i in 100.*bcme.two_obs.sum()/bcme.count()]).ravel()
+hplt = np.array([[i,i] for i in 100.*bcme.two_obs.sum()/bcme.two_obs.count()]).ravel()
 hplt = np.concatenate([[0],hplt,[0]])
 
 #bins for histogram plotting cme obs. duration
@@ -209,7 +209,7 @@ ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
 ax2[0,0].set_xticklabels([])
 #ax2[0,0].set_ylabel('Occurrence [%]')
 #Switch to detection fraction based on email from Leon on 2018/02/15
-ax2[0,0].set_ylabel('Detection Fraction [%]')
+ax2[0,0].set_ylabel('Detection Rate [%]')
 ax2[0,0].set_xlim(ax2[1,0].get_xlim())
 #Switch to detection fraction based on email from Leon on 2018/02/15
 #ax2[0,0].set_ylim([0.,30.])
