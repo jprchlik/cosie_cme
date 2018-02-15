@@ -184,6 +184,8 @@ cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 #observed duration (get sum all observation times [0 when none, 1 when observed] from 2011 orbit)
 cmes['obs_dur'] = cmes.apply(lambda x: tott.loc[((tott.index >= x.start_dt) & (tott.index <= x.end_dt)),'obs'].sum(),axis=1)
 
+#Print successful observation rate
+print('Success Rate = {0:3.1f} %'.format(100.*len(cmes.loc[cmes.obs_dur > 2,:])/float(len(cmes))))
 
 #write out simulated cmes
 cmes.to_csv('simulated_cosie_cme.csv')
