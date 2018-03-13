@@ -24,6 +24,13 @@ res1 = 300
 bins1 = np.arange(0,15000,res1)
 bdur = cmes.groupby(np.digitize(cmes.obs_dur*scl,bins1))
 
+
+#make 2D histogram 2018/03/13
+H,xedges,yedges = np.histogram2d(cmes.v,cmes.obs_dur*scl,bins=(bins,bins1))
+H = H.T #transpose for plotting
+#set up X,Y values
+X, Y = np.meshgrid(xedges, yedges)
+
 #used bins for plotting
 ubin = bins[bcme.obs_dur.mean().index.values-1]+(res/2.)
 
@@ -54,7 +61,12 @@ fig2.subplots_adjust(hspace=0.05,wspace=0.05)
 ax2[0,1].axis('off')
 
 #plot scatter points
-ax2[1,0].scatter(cmes.v,cmes.obs_dur*scl,color='black',label='Sim. CME')
+H_plt = np.log10(H/1000.)
+H_plt[np.isfinite(H_plt) == False] = -3.
+
+#Switch to binned data 2018/03/13 J. Prchlik
+#ax2[1,0].scatter(cmes.v,cmes.obs_dur*scl,color='black',label='Sim. CME')
+ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=plt.cm.gray.reversed())
 ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*scl,yerr=bcme.obs_dur.std()*scl,fmt='s',color='red',label='Mean')
 ax2[1,0].set_xlabel('CACTus Velocity [km/s]')
 ax2[1,0].set_ylabel('COSIE Obs. Duration [s]')
@@ -81,8 +93,8 @@ ax2[1,1].set_xlim([0.,105.])
 fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
 fancy_plot(ax2[0,0])
-fig2.savefig('cactus_durat_obs_vs_vel_reverse.png',bbox_pad=.1,bbox_inches='tight')
-fig2.savefig('cactus_durat_obs_vs_vel_reverse.eps',bbox_pad=.1,bbox_inches='tight')
-fig2.savefig('cactus_durat_obs_vs_vel_reverse.pdf',bbox_pad=.1,bbox_inches='tight')
+fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.png',bbox_pad=.1,bbox_inches='tight')
+fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.eps',bbox_pad=.1,bbox_inches='tight')
+fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.pdf',bbox_pad=.1,bbox_inches='tight')
 
 
