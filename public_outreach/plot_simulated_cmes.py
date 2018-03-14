@@ -4,6 +4,7 @@ import numpy as np
 from fancy_plot import *
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes, zoomed_inset_axes
 
 kmsolar = 6.96*10.**5. #solar radii to km
 
@@ -21,7 +22,7 @@ bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
 #get cme obseration duration bins
 res1 = 300
-bins1 = np.arange(0,15000,res1)
+bins1 = np.arange(-res1+1,15000,res1)
 bdur = cmes.groupby(np.digitize(cmes.obs_dur*scl,bins1))
 
 
@@ -57,20 +58,26 @@ theta1 = np.radians(90) #location of north in the image
 fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[2,1]},figsize=(12,12))
 fig2.subplots_adjust(hspace=0.05,wspace=0.05)
 
-#turn top right figure off
-ax2[0,1].axis('off')
+
+#normalize by year 2018/03/14 J. Prchlik
+obs_sec = (pd.to_datetime(cmes.t0.max())-pd.to_datetime(cmes.t0.min())).total_seconds()
+obs_yrs = obs_sec/(60.*60.*24.*365.25) #seconds to years
 
 #plot scatter points
-H_plt = np.log10(H/1000.)
-H_plt[np.isfinite(H_plt) == False] = -3.
+H_plt = np.log10(H/1000./obs_yrs)
+#H_plt[np.isfinite(H_plt) == False] = -3.
 
 #Switch to binned data 2018/03/13 J. Prchlik
 #ax2[1,0].scatter(cmes.v,cmes.obs_dur*scl,color='black',label='Sim. CME')
-ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=plt.cm.gray.reversed())
+#add max and min color values
+plotc = ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=plt.cm.gray.reversed(),vmax=1.0,vmin=-3.)
 ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*scl,yerr=bcme.obs_dur.std()*scl,fmt='s',color='red',label='Mean')
 ax2[1,0].set_xlabel('CACTus Velocity [km/s]')
 ax2[1,0].set_ylabel('COSIE Obs. Duration [s]')
 ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0.12)
+
+#set plot limit for 2d histogram 2018/03/14 J. Prchlik
+ax2[1,0].set_ylim([-500,9500])
 
 #plot velocity histogram
 ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
@@ -89,6 +96,19 @@ ax2[1,1].set_yticklabels([])
 ax2[1,1].set_xlabel('Cumulative COSIE \n Obs. Duration [%]')
 ax2[1,1].set_ylim(ax2[1,0].get_ylim())
 ax2[1,1].set_xlim([0.,105.])
+
+#turn top right figure off
+ax2[0,1].axis('off')
+#turn top right figure into color bar
+#cbar = fig2.colorbar(plotc,cax=ax2[0,1])
+#use inset axis instead
+axins = inset_axes(ax2[1,0],
+                   width="5%",  # width = 30% of parent_bbox
+                   height="40%",  # height : 1 inch
+                   loc=7,borderpad=4.0)
+cbar = fig2.colorbar(plotc,cax=axins)
+cbar.set_label('Log(N$_\mathrm{CMEs}$/year)',fontsize=18)
+cbar.set_ticks([-3.0,-2.0,-1.0,0.,1.0])
 
 fancy_plot(ax2[1,0])
 fancy_plot(ax2[1,1])
