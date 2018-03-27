@@ -182,8 +182,10 @@ fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.pdf',bbox_pad=.1,bbox_inche
 fig3,ax3 = plt.subplots(figsize=(12,12))
 
 #get cme velocity bins
-res = 500
-bins = np.logspace(np.log10(200.),np.log10(3000.),10)
+#res = 500
+#bins = np.logspace(np.log10(200.),np.log10(3000.),10)
+#Switched to manual bins
+bins = np.array([0.,200.,400.,600.,800.,1200.,1800.,2400.])
 bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
 #bins for histogram plotting cme velocity
@@ -198,9 +200,9 @@ hplt = np.concatenate([[0],hplt,[0]])
 ax3.plot(hbin,hplt,color='black',linewidth=3)
 
 ax3.set_xlabel('CACTus Velocity [km/s]')
-ax3.set_ylabel('Number of CMEs per 2 Years [#]')
+ax3.set_ylabel('COSIE Observed CMEs per 2 Years [#]')
 
-ax3.set_ylim([0,55])
+ax3.set_ylim([0,60])
 fancy_plot(ax3)
 fig3.savefig('cactus_cme_two_year.png',bbox_pad=.1,bbox_inches='tight')
 fig3.savefig('cactus_cme_two_year.eps',bbox_pad=.1,bbox_inches='tight')
@@ -208,7 +210,76 @@ fig3.savefig('cactus_cme_two_year.pdf',bbox_pad=.1,bbox_inches='tight')
 
 ####################################################
 ####################################################
+#GET NUMBER OF OBITS PER SPEED
+#Read in 2011 orbital file
+obst = pd.read_csv('../filament/python_f_cosie_obs.csv',sep=',',skiprows=1)
 
+#set the start time for all unobscured observations
+obst['obs'] = np.arange(len(obst))
+
+#convert start good observing time to datetime object
+obst['start_dt'] = pd.to_datetime(obst.start)
+obst.set_index(obst.start_dt,inplace=True)
+obst = obst.loc['2011-01-01':'2012-01-01']
+
+#bad time pandas dataframe Use bad time to back fill the orbit preventing over orbit counting
+badt = pd.DataFrame()
+badt['start_dt'] = obst.start_dt+pd.to_timedelta(obst.end,unit='m')
+badt['obs'] = np.arange(len(obst))+1
+badt.set_index(badt.start_dt,inplace=True)
+
+#Obscured and unobscured observer times in one array
+tott = pd.concat([obst,badt])
+tott.sort_index(inplace=True)
+
+
+#cut cmes to only include observed events
+cmes = cmes[cmes.obs_dur > 1.]
+
+#Get orbit number for start of observation
+#set cmes index to start time temporarily
+cmes.set_index(pd.to_datetime(cmes.start_dt),inplace=True)
+cmes['o_start'] = tott.reindex(cmes.index,method='ffill').obs
+
+#set cmes index to end time temporarily
+cmes.set_index(pd.to_datetime(cmes.end_dt),inplace=True)
+cmes['o_end'] = tott.reindex(cmes.index,method='ffill').obs
+
+#Get the number of orbits from the end orbit number minus the start orbit number times where the cme is observed
+cmes['orbits'] = (1+cmes.o_end-cmes.o_start)*(cmes.obs_dur > 1)
+
+
+#bin up the orbits
+#get cme velocity bins
+res = 100
+bins = np.arange(0,2500,res)
+bcme = cmes.groupby(np.digitize(cmes.v,bins))
+
+#Number of CMEs per two year campgain 
+hplt = np.array([i for i in bcme.orbits.mean()]).ravel()
+herr = np.array([i for i in bcme.orbits.std()]).ravel()
+htot = np.array([i for i in bcme.orbits.count()]).ravel()
+hbin = np.array([i for i in bcme.v.mean()]).ravel()
+
+
+#Plot for number of CMEs over a two year period
+fig4,ax4 = plt.subplots(figsize=(12,12))
+
+#plot velocity histogram
+ax4.scatter(hbin,hplt,color='black')
+ax4.errorbar(hbin,hplt,yerr=herr/np.sqrt(htot),color='black',fmt='o')
+
+ax4.set_xlabel('CACTus Velocity [km/s]')
+#ax4.set_ylabel('SS Orbits Observed [#]')
+ax4.set_ylabel('Single Orbit Observation [\%]')
+
+ax4.set_xlim([0.,2400.])
+ax4.set_ylim([0.,110.])
+
+fancy_plot(ax4)
+fig4.savefig('cactus_cme_orbits_obs.png',bbox_pad=.1,bbox_inches='tight')
+fig4.savefig('cactus_cme_orbits_obs.eps',bbox_pad=.1,bbox_inches='tight')
+fig4.savefig('cactus_cme_orbits_obs.pdf',bbox_pad=.1,bbox_inches='tight')
 
 
 ####################################################
