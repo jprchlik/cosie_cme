@@ -11,6 +11,10 @@ kmsolar = 6.96*10.**5. #solar radii to km
 
 #Eds requested custom color map
 ccmap = mpl.colors.ListedColormap([ 'blue','green','yellow','red'])
+#modification to be intensity order
+ccmap = mpl.colors.ListedColormap([ 'yellow','green','blue','purple'])
+ccmap = mpl.colors.ListedColormap([ 'purple','green','tomato','cyan'])
+ccmap = mpl.colors.ListedColormap([ 'purple','red','limegreen','cyan'])
 #ccmap.set_over('0.25')
 #ccmap.set_under('1.0')
 
@@ -84,6 +88,20 @@ H_plt = np.log10(H/1000./obs_yrs)
 #custom color map at Ed's request
 plotc = ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=ccmap,norm=norm)
 ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*scl,yerr=bcme.obs_dur.std()*scl,fmt='s',color='black',label='Mean')
+
+
+
+#create mask for plotting hatching on images
+#bounds = [np.log10(0.0003),np.log10(0.003),np.log10(0.03),np.log10(0.3),np.log10(3.)]
+#hatch_list = ['','/','-','\\','x','o']
+#for j,i in enumerate(bounds):
+#
+#    if j == 0: mask = np.ma.masked_greater_equal(H_plt,i)
+#    if ((j > 0) & (j < len(bounds)-1)): mask = np.ma.masked_outside(H_plt,bounds[j-1],bounds[j])
+#    if j == len(bounds)-1: mask = np.ma.masked_less_equal(H_plt,bounds[j-1])
+#
+#    ax2[1,0].pcolor(X, Y, mask, hatch=hatch_list[j], alpha=0.)
+#
 
 #Add horizontal 90 minute orbit and 500s
 ax2[1,0].plot([-100,10000],[3600.,3600.],'--b',linewidth=3)
