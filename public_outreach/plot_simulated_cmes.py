@@ -176,3 +176,39 @@ fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.eps',bbox_pad=.1,bbox_inche
 fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist.pdf',bbox_pad=.1,bbox_inches='tight')
 
 
+####################################################
+####################################################
+#Plot for number of CMEs over a two year period
+fig3,ax3 = plt.subplots(figsize=(12,12))
+
+#get cme velocity bins
+res = 500
+bins = np.logspace(np.log10(200.),np.log10(3000.),10)
+bcme = cmes.groupby(np.digitize(cmes.v,bins))
+
+#bins for histogram plotting cme velocity
+#velocity bins double up so we get 2 points per x value
+hbin = np.sort(np.array(bins.tolist()*2))
+
+#Number of CMEs per two year campgain 
+hplt = np.array([[i,i] for i in 2.*bcme.two_obs.sum()/11./1000.]).ravel()
+hplt = np.concatenate([[0],hplt,[0]])
+
+#plot velocity histogram
+ax3.plot(hbin,hplt,color='black',linewidth=3)
+
+ax3.set_xlabel('CACTus Velocity [km/s]')
+ax3.set_ylabel('Number of CMEs per 2 Years [#]')
+
+ax3.set_ylim([0,55])
+fancy_plot(ax3)
+fig3.savefig('cactus_cme_two_year.png',bbox_pad=.1,bbox_inches='tight')
+fig3.savefig('cactus_cme_two_year.eps',bbox_pad=.1,bbox_inches='tight')
+fig3.savefig('cactus_cme_two_year.pdf',bbox_pad=.1,bbox_inches='tight')
+
+####################################################
+####################################################
+
+
+
+####################################################
