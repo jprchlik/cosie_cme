@@ -216,6 +216,8 @@ obst = pd.read_csv('../filament/python_f_cosie_obs.csv',sep=',',skiprows=1)
 
 #set the start time for all unobscured observations
 obst['obs'] = np.arange(len(obst))
+#parameter to fix over counting orbits
+obst['fix'] = 0
 
 #convert start good observing time to datetime object
 obst['start_dt'] = pd.to_datetime(obst.start)
@@ -226,6 +228,8 @@ obst = obst.loc['2011-01-01':'2012-01-01']
 badt = pd.DataFrame()
 badt['start_dt'] = obst.start_dt+pd.to_timedelta(obst.end,unit='m')
 badt['obs'] = np.arange(len(obst))+1
+#parameter to fix over counting orbits
+badt['fix'] = -1
 badt.set_index(badt.start_dt,inplace=True)
 
 #Obscured and unobscured observer times in one array
@@ -244,9 +248,13 @@ cmes['o_start'] = tott.reindex(cmes.index,method='ffill').obs
 #set cmes index to end time temporarily
 cmes.set_index(pd.to_datetime(cmes.end_dt),inplace=True)
 cmes['o_end'] = tott.reindex(cmes.index,method='ffill').obs
+cmes['fix'] = tott.reindex(cmes.index,method='ffill').fix
 
 #Get the number of orbits from the end orbit number minus the start orbit number times where the cme is observed
-cmes['orbits'] = (1+cmes.o_end-cmes.o_start)*(cmes.obs_dur > 1)
+cmes['orbits_t'] = (1+cmes.o_end-cmes.o_start+cmes.fix)
+
+#Count the 1 orbit fraction
+cmes['orbits'] = cmes.orbits_t*(cmes.orbits_t < 1.1)
 
 
 #bin up the orbits
@@ -256,25 +264,25 @@ bins = np.arange(0,2500,res)
 bcme = cmes.groupby(np.digitize(cmes.v,bins))
 
 #Number of CMEs per two year campgain 
-hplt = np.array([i for i in bcme.orbits.mean()]).ravel()
+hplt = np.array([i for i in bcme.orbits.sum()]).ravel()
 herr = np.array([i for i in bcme.orbits.std()]).ravel()
 htot = np.array([i for i in bcme.orbits.count()]).ravel()
 hbin = np.array([i for i in bcme.v.mean()]).ravel()
 
 
 #Plot for number of CMEs over a two year period
-fig4,ax4 = plt.subplots(figsize=(12,12))
+fig4,ax4 = plt.subplots(figsize=(8,8))
 
 #plot velocity histogram
-ax4.scatter(hbin,hplt,color='black')
-ax4.errorbar(hbin,hplt,yerr=herr/np.sqrt(htot),color='black',fmt='o')
+ax4.scatter(hbin,hplt/htot*100.,color='black')
+#ax4.errorbar(hbin,hplt/htot*100.,yerr=herr/np.sqrt(htot),color='black',fmt='o')
 
 ax4.set_xlabel('CACTus Velocity [km/s]')
 #ax4.set_ylabel('SS Orbits Observed [#]')
-ax4.set_ylabel('Single Orbit Observation [\%]')
+ax4.set_ylabel('Single Orbit Obs. Fraction [%]')
 
 ax4.set_xlim([0.,2400.])
-ax4.set_ylim([0.,110.])
+ax4.set_ylim([-5.,110.])
 
 fancy_plot(ax4)
 fig4.savefig('cactus_cme_orbits_obs.png',bbox_pad=.1,bbox_inches='tight')
