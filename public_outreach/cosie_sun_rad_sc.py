@@ -185,7 +185,7 @@ fig1, ax1 = plt.subplots()
 ax1.scatter(cmes.v,cmes.obs_dur,color='black',label='Sim.CME')
 ax1.errorbar(ubin+(res/2.),bcme.obs_dur.mean(),yerr=bcme.obs_dur.std(),fmt='s',color='red',label='Mean')
 ax1.set_xlabel('CACTus Velocity [km/s]')
-ax1.set_ylabel('COSIE Frames with CME [\#]')
+ax1.set_ylabel('COSIE Frames with CME [#]')
 ax1.legend(loc='upper right',scatterpoints=1,frameon=False)
 fancy_plot(ax1)
 

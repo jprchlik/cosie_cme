@@ -1,5 +1,5 @@
 
-:Issued: Mon May 15 02:03:08 2017
+:Issued: Sat Feb 10 01:50:57 2018
 :Product: CACTus catalogue (http://sidc.be/cactus)
 #----------------------------------------------------------------------
 # Instrument: LASCO| Detector: c2 # Instrument: LASCO| Detector: c3
