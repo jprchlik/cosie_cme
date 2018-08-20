@@ -8,6 +8,15 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes, zoomed_inset_axes,
 
 kmsolar = 6.96*10.**5. #solar radii to km
 
+#All cactus CMEs
+cmea = pd.read_csv('../filament/cme_lz.txt',sep='|',escapechar='#',skiprows=23)
+#remove whitespaces from pandas headers
+cmea.rename(columns=lambda x: x.strip(),inplace=True)
+#cut out region for testing 2011 purposes 2018/02/13 J. Prchlik
+cmea.set_index(pd.to_datetime(cmea.t0),inplace=True)
+cmea = cmea.loc['2004-10-31':'2015-10-31']
+#remove whitespace from halo identifier
+cmea['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
 
 #Eds requested custom color map
 ccmap = mpl.colors.ListedColormap([ 'blue','green','yellow','red'])
@@ -29,14 +38,25 @@ scl = float(cad[:-1]) #turn cadence into a float
 
 
 good_dur_arr = [30,35,40,45]
+good_dur_arr = [30]
 for good_dur in good_dur_arr:
     #read simulated cmes
     cmes = pd.read_csv('simulated_cosie_cme_good_dur_{0:1d}.csv'.format(good_dur))
+    #cmes = pd.read_csv('simulated_cosie_cme.csv'.format(good_dur))
     #get cme velocity bins
     res = 100
     bins = np.arange(0,2500,res)
     bcme = cmes.groupby(np.digitize(cmes.v,bins))
-    
+
+    #get cme velocity bins for CME number plot
+    #Switched back to raw data 2018/08/20 for the total number per year for COSIE
+    res2 = 500
+    bins2 = np.array([0.,500.,1000.,1500.,2100.])
+    #real cme counts
+    bcme2_r = cmea.groupby(np.digitize(cmea.v,bins2))
+    #simulated cme counts which will turn into a fraction
+    bcme2_s = cmes.groupby(np.digitize(cmes.v,bins2))
+
     #get cme obseration duration bins
     res1 = 300
     bins1 = np.arange(-res1+1,15000,res1)
@@ -50,6 +70,9 @@ for good_dur in good_dur_arr:
     
     #used bins for plotting
     ubin = bins[bcme.obs_dur.mean().index.values-1]+(res/2.)
+
+    #used bins for plotting
+    #ubin2 = bins2[bcme2.obs_dur.mean().index.values-1]+(res2/2.)
     
     #bins for histogram plotting cme velocity
     #velocity bins
@@ -61,6 +84,25 @@ for good_dur in good_dur_arr:
     #Switch to detection percentage based on email for Leon 2018/02/15
     hplt = np.array([[i,i] for i in 100.*bcme.two_obs.sum()/bcme.two_obs.count()]).ravel()
     hplt = np.concatenate([[0],hplt,[0]])
+
+    #Added CME velocity histogram per Ed's comment 2018/08/16
+    #bins for histogram plotting cme velocity
+    #velocity bins
+    hbin2 = np.array([[i,i] for i in bins2[bcme2_s.obs_dur.mean().index.values]]).ravel()
+    hbin2 = np.concatenate([[100],[100],hbin2])
+    #hbin2[-1] = bins2[-1]
+    
+    #Simulated CME observation fraction 2018/08/20 J. Prchlik
+    hplt2_s = np.array([[i,i] for i in bcme2_s.two_obs.sum()/bcme2_s.two_obs.count()]).ravel()
+    hplt2_s = np.concatenate([[0],hplt2_s,[0]])
+
+    #Real CME observation count 2018/08/20 J. Prchlik
+    hplt2_r = np.array([[i,i] for i in bcme2_r.v.count()]).ravel()
+    hplt2_r = np.concatenate([[0],hplt2_r,[0]])
+
+
+    #combine real*simulated fraction
+    hplt2 = hplt2_r*hplt2_s
     
     #bins for histogram plotting cme obs. duration
     ## Change to CDF 2018/02/13 J. Prchlik
@@ -88,7 +130,8 @@ for good_dur in good_dur_arr:
     #add max and min color values
     #plotc = ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=plt.cm.viridis.reversed(),vmax=1.0,vmin=-3.)
     #custom color map at Ed's request
-    plotc = ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=ccmap,norm=norm)
+    #removed at Ed's request 2018/08/16
+    #plotc = ax2[1,0].pcolormesh(X,Y,H_plt,label=None,cmap=ccmap,norm=norm)
     ax2[1,0].errorbar(ubin,bcme.obs_dur.mean()*scl,yerr=bcme.obs_dur.std()*scl,fmt='s',color='black',label='Mean')
     
     
@@ -106,10 +149,24 @@ for good_dur in good_dur_arr:
     #
     
     #Add horizontal 90 minute orbit and 500s
-    ax2[1,0].plot([-100,10000],[3600.,3600.],'--',linewidth=3,color='black')
-    ax2[1,0].text(1000,3690,'3600s (1 ISS Orbit)',fontsize=18)
-    ax2[1,0].plot([-100,10000],[500.,500.],'--',linewidth=3,color='black')
-    ax2[1,0].text(2150,550,'500s',fontsize=18)
+    #Remove horizontal line 2018/08/20
+    ###ax2[1,0].plot([-100,10000],[5400.,5400.],'--',linewidth=3,color='black')
+    ###ax2[1,0].text(1000,5200,'5400s (1 ISS Orbit)',fontsize=18)
+    ###ax2[1,0].plot([-100,10000],[500.,500.],'--',linewidth=3,color='black')
+
+
+    #Add crossing time
+    cme_vel = np.linspace(100,2200,100,endpoint=True)
+    cme_dur = 2.*kmsolar/cme_vel
+    ax2[1,0].plot(cme_vel,cme_dur,'--',color='gray',linewidth=3)
+    #ax2[1,0].plot(cme_vel,cme_dur*np.sqrt(2.),'--',color='gray',linewidth=3)
+    
+    ax2[1,0].text(1000,1500,'Crossing Time',color='gray')
+
+    #changed to 50 when dropping p_colormesh 2018/08/16 J. Prchlik
+    #Removed at Ed's requestion 2018/08/20
+    #ax2[1,0].text(50,550,'500s',fontsize=18)
+    #ax2[1,0].text(2150,550,'500s',fontsize=18)
     #reset xlimit
     ax2[1,0].set_xlim([0,2400])
     
@@ -119,7 +176,8 @@ for good_dur in good_dur_arr:
     ax2[1,0].legend(loc='upper right',scatterpoints=1,frameon=False,handletextpad=-0.12)
     
     #set plot limit for 2d histogram 2018/03/14 J. Prchlik
-    ax2[1,0].set_ylim([-500,9500])
+    #shorter axis range 2018/08/16
+    ax2[1,0].set_ylim([-500,4900])
     
     #plot velocity histogram
     ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
@@ -131,6 +189,19 @@ for good_dur in good_dur_arr:
     #Switch to detection fraction based on email from Leon on 2018/02/15
     #ax2[0,0].set_ylim([0.,30.])
     ax2[0,0].set_ylim([0.,100.])
+
+    #Add CMEs per yer in the top panel 2018/08/16 added fraction times real CMEs 2081/08/20
+    ax3 = ax2[0,0].twinx()
+    ax3.plot(hbin2,hplt2/obs_yrs,'--',color='blue',linewidth=3)
+    ax3.set_ylabel('Obs. CMEs [# yr$^{-1}$]',color='blue')
+    ax3.yaxis.label.set_color('blue')
+    ax3.spines['right'].set_color('blue')
+    ax3.tick_params(axis='y', colors='blue')
+    #ax3.set_ylim([0,45])
+    fancy_plot(ax3)
+    ax3.yaxis.set_ticks_position('right')
+    ax3.set_yscale('log')
+    ax3.set_ylim([1,1E3])
     
     #plot observation time histogram
     ax2[1,1].plot(100.-hplt1,hbin1,color='black',linewidth=3)
@@ -152,8 +223,9 @@ for good_dur in good_dur_arr:
                 arrowprops=dict(facecolor='blue', shrink=0.0),
                 horizontalalignment='right', verticalalignment='top',
                 fontsize=18)
+    #changed from 6000 to 3000 with resticted time range 2018/08/16 J. Prchlik
     ax2[1,1].annotate('50% of CMEs\n observed $>$ {0:1.0f}s'.format(fif_obs), xy=(50, fif_obs),  xycoords='data',
-                xytext=(55,6000), textcoords='data',
+                xytext=(55,3000), textcoords='data',
                 arrowprops=dict(facecolor='blue', shrink=0.0),
                 horizontalalignment='center', verticalalignment='top',
                 fontsize=18)
@@ -161,7 +233,7 @@ for good_dur in good_dur_arr:
     ax2[1,1].set_xlabel('Cumulative COSIE \n Obs. Duration [%]')
     ax2[1,1].set_ylim(ax2[1,0].get_ylim())
     ax2[1,1].set_xlim([0.,105.])
-    ax2[1,1].set_title('{0:1d} Minutes of \n Observations \n per Orbit \n \n \n'.format(good_dur),fontsize=28)
+    ax2[1,1].set_title('            {0:1d} Minutes of \n            Observations \n      per Orbit \n \n \n'.format(good_dur),fontsize=28)
     
     #turn top right figure off
     ax2[0,1].axis('off')
@@ -170,20 +242,22 @@ for good_dur in good_dur_arr:
     #use inset axis instead
     
     #switch to axis locator 2018/03/21 J. Prchlik
-    axins = inset_axes(ax2[1,0],
-                       width="5%",  # width = 30% of parent_bbox
-                       height="40%",  # height : 1 inch
-                       loc=9,borderpad=1.0)
-    
-    
-    
-    cbar = fig2.colorbar(plotc,cax=axins)
-    cbar.set_label('Log(N$_\mathrm{CMEs}$/year)',fontsize=18)
-    cbar.set_ticks([-3.0,-2.0,-1.0,0.,1.0])
+    #removed at Ed's request 2018/08/16
+    #axins = inset_axes(ax2[1,0],
+    #                   width="5%",  # width = 30% of parent_bbox
+    #                   height="40%",  # height : 1 inch
+    #                   loc=9,borderpad=1.0)
+    #
+    #
+    #
+    #cbar = fig2.colorbar(plotc,cax=axins)
+    #cbar.set_label('Log(N$_\mathrm{CMEs}$/year)',fontsize=18)
+    #cbar.set_ticks([-3.0,-2.0,-1.0,0.,1.0])
     
     fancy_plot(ax2[1,0])
     fancy_plot(ax2[1,1])
     fancy_plot(ax2[0,0])
+    ax2[0,0].yaxis.set_ticks_position('left')
     fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist_{0:1d}.png'.format(good_dur),bbox_pad=.1,bbox_inches='tight')
     fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist_{0:1d}.eps'.format(good_dur),bbox_pad=.1,bbox_inches='tight')
     fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist_{0:1d}.pdf'.format(good_dur),bbox_pad=.1,bbox_inches='tight')
