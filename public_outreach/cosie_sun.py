@@ -83,7 +83,9 @@ fmt = fmt.replace('T',' ')
 obst = calc_dt(obst,['start'],fmt)
 
 #no start and endtime in obst table so calc endtime manually
-obst['end_dt'] = [obst['start_dt'][j]+timedelta(minutes=i) for j,i in enumerate(obst['end'])]
+#obst['end_dt'] = [obst['start_dt'][j]+timedelta(minutes=i) for j,i in enumerate(obst['end'])]
+#Switched to constant 30 minutes per request from ED on 2018/09/07
+obst['end_dt'] = [obst['start_dt'][j]+timedelta(minutes=30) for j,i in enumerate(obst['end'])]
 
 
 timeres = 0.5 #half minute is fast COSIE cadence (30s)
@@ -118,9 +120,9 @@ ax1.add_patch(s1)
 #Add R2 and R3 labels
 theta = np.radians(315)
 x0,y0 = np.cos(theta),np.sin(theta)
-ax1.text(2.*x0,2.*y0,'   2R$_\odot$',color='black',fontsize=34,ha='left',weight='bold')
-ax1.text(3.*x0,3.*y0,'   3R$_\odot$',color='black',fontsize=34,ha='left',weight='bold')
-ax1.text(-3.22,-3.22,'COSIE FOV',color='black',fontsize=34,ha='left',weight='bold')
+ax1.text(2.*x0,2.*y0,'   2R$_\odot$',color='black',fontsize=52,ha='left',weight='bold')
+ax1.text(3.*x0,3.*y0,'   3R$_\odot$',color='black',fontsize=52,ha='left',weight='bold')
+ax1.text(-3.22,-3.22,'COSIE FOV',color='black',fontsize=52,ha='left',weight='bold')
 
 
 #ax2.text(2.*x0,2.*y0,'   2R$_\odot$',color='black',fontsize=34,ha='left')
@@ -241,9 +243,9 @@ ax1.scatter(-1111,1111,color='blue',label='Observable',s=175)
 ax1.scatter(-1111,1111,marker='x',color='red',label='Eclipsed',s=175)
 
 ##FORMAT LEGEND SO IT LOOKS NICE##
-leg = ax1.legend(bbox_to_anchor=(0.00, 0.13),
+leg = ax1.legend(bbox_to_anchor=(0.51, 0.20),
            scatterpoints=1,loc=2,
-           frameon=False,handletextpad=-.1,fontsize=36)
+           frameon=False,handletextpad=-.1,fontsize=50)
 
 
 #SETS LEGEND COLOR TO WHITE FOR WHEN YOU USE THE AIA IMAGE
