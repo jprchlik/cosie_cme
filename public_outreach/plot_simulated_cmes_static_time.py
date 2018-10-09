@@ -18,6 +18,15 @@ cmea = cmea.loc['2004-10-31':'2015-10-31']
 #remove whitespace from halo identifier
 cmea['halo?'].replace(r'\s\ \s*','',regex=True,inplace=True)
 
+
+#get years in cme catalog for determining the uncertainty in the number of fast and slow cmes per year
+#Comments from Ed 2018/08/30
+uyears = np.unique(cmea.index.year).astype('str')
+#Switched to third year frequency because we want to observe 10 CMEs
+min_year= 525948.77
+spt_year= str(int(round(min_year/3.)))
+uyears = pd.date_range('2004-10-31','2015-10-31',freq=spt_year+'T')
+
 #Eds requested custom color map
 ccmap = mpl.colors.ListedColormap([ 'blue','green','yellow','red'])
 #modification to be intensity order
@@ -56,6 +65,44 @@ for good_dur in good_dur_arr:
     bcme2_r = cmea.groupby(np.digitize(cmea.v,bins2))
     #simulated cme counts which will turn into a fraction
     bcme2_s = cmes.groupby(np.digitize(cmes.v,bins2))
+
+
+    #Added 2018/08/30 J. Prchlik per comments from Ed on 2018/08/29
+    #get CME number by years 2018/08/30 J. Prchlik
+    bcme2_y = []
+    #loop over all years
+    for j,cme_y in enumerate(uyears):
+
+        #check for ending
+        if j == len(uyears)-1:
+            cmey = cmea[cme_y:]
+        else:
+            cmey = cmea[cme_y:uyears[j+1]]
+        #real cme counts per third of a year (solved 0 in a bin problem)
+        bcme2_yt = np.bincount(np.digitize(cmey.v,bins2),minlength=5)
+        #remove 0 index
+        hplt2_rt = bcme2_yt[1:]
+        #simulated two observation detection fraction
+        hplt2_s = np.array([i for i in bcme2_s.two_obs.sum()/bcme2_s.two_obs.count()]).ravel() 
+        bcme2_y.append(hplt2_rt*hplt2_s)
+    
+    
+    #convert to numpy array
+    bcme2_y = np.array(bcme2_y)
+
+    #Switch to low < 1000 and high < 1000 velocity bins
+    unc_num = []
+    #low velocity number uncertainty
+    unc_num.append(np.std(np.sum(bcme2_y[:,:2],axis=1))/np.sqrt(uyears.size))
+    #high velocity number uncertainty                                       
+    unc_num.append(np.std(np.sum(bcme2_y[:,2:],axis=1))/np.sqrt(uyears.size))
+    #error in mean
+    #unc_num = np.std(bcme2_y,axis=0)/np.sqrt(uyears.size)
+    #print the velocity bins and the uncertianty in the number in those bins by year
+    print('Velocity Bins')
+    print(bins2)
+    print('Uncertainty in Number per Third Year')
+    print(unc_num)
 
     #get cme obseration duration bins
     res1 = 300
@@ -113,7 +160,9 @@ for good_dur in good_dur_arr:
     ##THIS WAS DONE SO THE DEEP AIA IMAGE MATCHES##
     theta1 = np.radians(90) #location of north in the image
     
-    fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[2,1]},figsize=(12,12))
+    #Updated to 2 panel plot based on Ed's request 2018/10/09
+    #fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[2,1]},figsize=(12,12))
+    fig2, ax2 = plt.subplots(nrows=2,ncols=2,gridspec_kw={'height_ratios':[1,2],'width_ratios':[100,1]},figsize=(8,12))
     fig2.subplots_adjust(hspace=0.05,wspace=0.05)
     
     
@@ -180,7 +229,7 @@ for good_dur in good_dur_arr:
     ax2[1,0].set_ylim([-500,4900])
     
     #plot velocity histogram
-    ax2[0,0].plot(hbin,hplt,color='black',linewidth=3)
+    ax2[0,0].plot(hbin,hplt,color='black',linewidth=3,label='Detection Rate')
     ax2[0,0].set_xticklabels([])
     #ax2[0,0].set_ylabel('Occurrence [%]')
     #Switch to detection fraction based on email from Leon on 2018/02/15
@@ -190,9 +239,12 @@ for good_dur in good_dur_arr:
     #ax2[0,0].set_ylim([0.,30.])
     ax2[0,0].set_ylim([0.,100.])
 
+
     #Add CMEs per yer in the top panel 2018/08/16 added fraction times real CMEs 2081/08/20
     ax3 = ax2[0,0].twinx()
-    ax3.plot(hbin2,hplt2/obs_yrs,'--',color='blue',linewidth=3)
+    ax3.plot(hbin2,hplt2/obs_yrs,'--',color='blue',linewidth=3,label='# CMEs')
+    #dummy plot for legend
+    ax2[0,0].plot([-999,-999],[-999,-999],'--',color='blue',linewidth=3,label='# CMEs')
     ax3.set_ylabel('Obs. CMEs [# yr$^{-1}$]',color='blue')
     ax3.yaxis.label.set_color('blue')
     ax3.spines['right'].set_color('blue')
@@ -203,40 +255,48 @@ for good_dur in good_dur_arr:
     ax3.set_yscale('log')
     ax3.set_ylim([1,1E3])
     
+    #Add legend
+    ax2[0,0].legend(loc='upper right',frameon=False,fontsize=14)
     #plot observation time histogram
-    ax2[1,1].plot(100.-hplt1,hbin1,color='black',linewidth=3)
-    ax2[1,1].set_yticklabels([])
-    
+   
+    #START Removed Cumlative distribution plot at Ed's request 2018/10/09 J. Prchlik
+    ##ax2[1,1].plot(100.-hplt1,hbin1,color='black',linewidth=3)
+    ##ax2[1,1].set_yticklabels([])
+    ##
 
-    #get the percent observed
-    thres_val = 500.
-    obs_index, = np.where(hbin1 > thres_val)
-    per_obs    = np.max(100.-hplt1[obs_index])
-    
-    #get where you observe 50%
-    fif_index, = np.where(np.abs(hplt1-50) == np.min(np.abs(hplt1-50)))
-    fif_obs    = round(np.mean(hbin1.values[fif_index])/100)*100
+    ###get the percent observed
+    ##thres_val = 360.
+    ##obs_index, = np.where(hbin1 > thres_val)
+    ##per_obs    = np.max(100.-hplt1[obs_index])
+    ##
+    ###get where you observe 50%
+    ##fif_index, = np.where(np.abs(hplt1-50) == np.min(np.abs(hplt1-50)))
+    ##fif_obs    = round(np.mean(hbin1.values[fif_index])/100)*100
 
-    #Add annotation of cumlative distribution
-    ax2[1,1].annotate('{0:1.0f}% of    \n  CMEs      \n observed\n for {1:1.0f}s '.format(per_obs,thres_val), xy=(per_obs, thres_val+1),  xycoords='data',
-                xytext=(45,1499), textcoords='data',
-                arrowprops=dict(facecolor='blue', shrink=0.0),
-                horizontalalignment='right', verticalalignment='top',
-                fontsize=18)
-    #changed from 6000 to 3000 with resticted time range 2018/08/16 J. Prchlik
-    ax2[1,1].annotate('50% of CMEs\n observed $>$ {0:1.0f}s'.format(fif_obs), xy=(50, fif_obs),  xycoords='data',
-                xytext=(55,3000), textcoords='data',
-                arrowprops=dict(facecolor='blue', shrink=0.0),
-                horizontalalignment='center', verticalalignment='top',
-                fontsize=18)
-    
-    ax2[1,1].set_xlabel('Cumulative COSIE \n Obs. Duration [%]')
-    ax2[1,1].set_ylim(ax2[1,0].get_ylim())
-    ax2[1,1].set_xlim([0.,105.])
-    ax2[1,1].set_title('            {0:1d} Minutes of \n            Observations \n      per Orbit \n \n \n'.format(good_dur),fontsize=28)
+    ###Add annotation of cumlative distribution
+    ##ax2[1,1].annotate('{0:1.0f}% of    \n  CMEs      \n observed\n for {1:1.0f}s '.format(per_obs,thres_val), xy=(per_obs, thres_val+1),  xycoords='data',
+    ##            xytext=(45,1499), textcoords='data',
+    ##            arrowprops=dict(facecolor='blue', shrink=0.0),
+    ##            horizontalalignment='right', verticalalignment='top',
+    ##            fontsize=18)
+    ###changed from 6000 to 3000 with resticted time range 2018/08/16 J. Prchlik
+    ##ax2[1,1].annotate('50% of CMEs\n observed $>$ {0:1.0f}s'.format(fif_obs), xy=(50, fif_obs),  xycoords='data',
+    ##            xytext=(55,3000), textcoords='data',
+    ##            arrowprops=dict(facecolor='blue', shrink=0.0),
+    ##            horizontalalignment='center', verticalalignment='top',
+    ##            fontsize=18)
+    ##
+    ##ax2[1,1].set_xlabel('Cumulative COSIE \n Obs. Duration [%]')
+    ##ax2[1,1].set_ylim(ax2[1,0].get_ylim())
+    ##ax2[1,1].set_xlim([0.,105.])
+    #removed 2018/08/30 from Ed's request on 2018/08/29
+    #ax2[1,1].set_title('            {0:1d} Minutes of \n            Observations \n      per Orbit \n \n \n'.format(good_dur),fontsize=28)
+    #END Removed Cumlative distribution plot at Ed's request 2018/10/09 J. Prchlik
     
     #turn top right figure off
     ax2[0,1].axis('off')
+    #Turn bottom right figure off
+    ax2[1,1].axis('off')
     #turn top right figure into color bar
     #cbar = fig2.colorbar(plotc,cax=ax2[0,1])
     #use inset axis instead
@@ -255,7 +315,8 @@ for good_dur in good_dur_arr:
     #cbar.set_ticks([-3.0,-2.0,-1.0,0.,1.0])
     
     fancy_plot(ax2[1,0])
-    fancy_plot(ax2[1,1])
+    #removed figure at Ed's request 2018/10/09
+    #fancy_plot(ax2[1,1])
     fancy_plot(ax2[0,0])
     ax2[0,0].yaxis.set_ticks_position('left')
     fig2.savefig('cactus_durat_obs_vs_vel_reverse_2Dhist_{0:1d}.png'.format(good_dur),bbox_pad=.1,bbox_inches='tight')
