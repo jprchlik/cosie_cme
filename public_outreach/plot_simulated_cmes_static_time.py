@@ -51,6 +51,12 @@ good_dur_arr = [30]
 for good_dur in good_dur_arr:
     #read simulated cmes
     cmes = pd.read_csv('simulated_cosie_cme_good_dur_{0:1d}.csv'.format(good_dur))
+
+   
+    #change detection to 300s (5min) of observations per email from Ed 2018/10/10
+    cmes.two_obs = 0
+    cmes.two_obs[cmes.obs_dur*scl > 300.] = 1.
+
     #cmes = pd.read_csv('simulated_cosie_cme.csv'.format(good_dur))
     #get cme velocity bins
     res = 100
