@@ -95,7 +95,7 @@ cmes['end_dt']   = cmes.cactus_dt+cmes.dt_cosf
 
 #bad time pandas dataframe
 #2018/08/14 set a constant time in minutes
-good_dur_arr = [35,40,45]
+good_dur_arr = [35]
 for good_dur in good_dur_arr:
     badt = pd.DataFrame()
     badt['start_dt'] = obst.start_dt+pd.to_timedelta(good_dur,unit='m')
